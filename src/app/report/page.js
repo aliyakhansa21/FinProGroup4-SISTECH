@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ReportFormPlaceholder from "@/components/report/ReportFormPlaceholder";
 import MapPlaceholder from "@/components/report/MapPlaceholder";
+import ReportForm from "@/components/report/ReportForm";
 
 export default function ReportPage() {
   return (
@@ -22,7 +23,7 @@ export default function ReportPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <ReportFormPlaceholder />
+        <ReportForm />
 
         <MapPlaceholder />
       </div>
