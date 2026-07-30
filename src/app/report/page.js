@@ -1,16 +1,17 @@
 import Link from "next/link";
-import ReportFormPlaceholder from "@/components/report/ReportFormPlaceholder";
-import MapPlaceholder from "@/components/report/MapPlaceholder";
 import ReportForm from "@/components/report/ReportForm";
 
 export default function ReportPage() {
   return (
-    <div className="space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-black-800 transition-colors mb-4"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors mb-4"
         >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
           Back to Home
         </Link>
         <h1 className="text-3xl font-bold text-gray-900">
@@ -22,11 +23,7 @@ export default function ReportPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ReportForm />
-
-        <MapPlaceholder />
-      </div>
+      <ReportForm />
     </div>
   );
 }
