@@ -1,16 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+
+// Import peta secara dinamis untuk menghindari error SSR
+const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
 
 export default function ReportForm() {
     const [incidentType, setIncidentType] = useState("");
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
     const [message, setMessage] = useState(null);
-    const [isOffline, setIsOffline] = useState(false);
-    
-    // State untuk mengatur modal peta
+    const [isOffline, setIsOffline] = useState(false);    
     const [isMapOpen, setIsMapOpen] = useState(false);
+
+    // Menyimpan koordinat yang sedang ditunjuk sebelum menekan "Confirm" (SEMENTARA)
+    const [tempCoords, setTempCoords] = useState({ lat: 41.8781, lng: -87.6298 });
+    // Koordinat fix yang akan dikirim ke API setelah user menekan "Confirm Location"
+    const [finalCoords, setFinalCoords] = useState(null);
 
     useEffect(() => {
         setIsOffline(!navigator.onLine);
@@ -58,7 +65,9 @@ export default function ReportForm() {
 
     // Fungsi simulasi saat user menekan "Confirm Location" di peta
     const handleConfirmLocation = () => {
-        setLocation("Selected from Map (Lat: 41.8781, Lng: -87.6298)"); 
+        setFinalCoords(tempCoords);
+        // show 4 decimal places for better readability
+        setLocation(`Lat: ${tempCoords.lat.toFixed(4)}, Lng: ${tempCoords.lng.toFixed(4)}`); 
         setIsMapOpen(false);
     };
 
@@ -140,25 +149,18 @@ export default function ReportForm() {
                         <h2 className="text-lg font-bold text-gray-900">Share Location</h2>
                     </div>
 
-                    {/* Area Peta (Sementara div kosong sebelum ada react-leaflet) */}
                     <div className="flex-1 relative bg-gray-200 flex flex-col items-center justify-center">
                         <p className="absolute top-6 text-gray-500 font-medium z-10 bg-white/80 px-4 py-2 rounded-full text-sm shadow-sm">
                             Tap on the map to select the location
                         </p>
-                        
-                        {/* Placeholder Peta */}
-                        <div className="text-gray-400 flex flex-col items-center">
-                            <svg className="w-12 h-12 mb-2" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                            </svg>
-                            <span>Map Area (Ready for react-leaflet)</span>
-                        </div>
+
+                        <MapPicker onLocationSelect={(coords) => setTempCoords(coords)} />
                     </div>
 
                     {/* Footer / Bottom Sheet Modal */}
                     <div className="bg-white p-6 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-3xl">
                         <div className="h-12 w-full border border-gray-300 rounded-xl mb-4 bg-gray-50 flex items-center px-4 text-gray-500 text-sm">
-                            Coordinates / Address will appear here
+                            {tempCoords.lat.toFixed(5)}, {tempCoords.lng.toFixed(5)}
                         </div>
                         <button 
                             onClick={handleConfirmLocation}
