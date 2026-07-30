@@ -1,11 +1,19 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import mockData from "@/data/mockHeatmapData.json"; 
 
 export default function HeatmapView() {
     const defaultCenter = [41.8781, -87.6298]; 
+    const [combinedData, setCombinedData] = useState([]);
+
+    // Mengambil data lokal dan menggabungkannya dengan mockData
+    useEffect(() => {
+        const localReports = JSON.parse(localStorage.getItem("localReports") || "[]");
+        setCombinedData([...mockData, ...localReports]);
+    }, []);
 
     const getRiskColor = (category) => {
         switch (category) {
@@ -30,25 +38,25 @@ export default function HeatmapView() {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 />
 
-                {/* Looping mock data untuk meletakkan titik api (CircleMarker) */}
-                {mockData.map((data) => (
+                {combinedData.map((data) => (
                     <CircleMarker
                         key={data.id}
                         center={[data.latitude, data.longitude]}
-                        radius={data.risk_score / 2.5} 
+                        radius={data.risk_score / 2.5}
                         pathOptions={{
                             fillColor: getRiskColor(data.risk_category),
-                            fillOpacity: 0.5, 
+                            fillOpacity: 0.5,
                             color: getRiskColor(data.risk_category),
-                            weight: 0 
+                            weight: 0
                         }}
                     >
-                        {/* Popup ini muncul saat titik diklik */}
                         <Popup>
                             <div className="p-1">
-                                <h3 className="font-bold text-gray-800">{data.risk_category} Risk Zone</h3>
+                                <h3 className="font-bold text-gray-800">
+                                    {data.incidentType ? `${data.incidentType} (User Report)` : `${data.risk_category} Risk Zone`}
+                                </h3>
                                 <p className="text-sm font-semibold text-gray-600 mt-1">Score: {data.risk_score}/100</p>
-                                <p className="text-xs text-gray-500 mt-2">{data.description}</p>
+                                <p className="text-xs text-gray-500 mt-2">{data.description || "No description provided."}</p>
                                 <p className="text-[10px] text-gray-400 mt-2">{new Date(data.timestamp).toLocaleString()}</p>
                             </div>
                         </Popup>
@@ -56,7 +64,6 @@ export default function HeatmapView() {
                 ))}
             </MapContainer>
 
-            {/* UI Komponen Legend melayang di atas peta */}
             <div className="absolute bottom-6 right-6 z-[400] bg-white p-4 rounded-2xl shadow-lg border border-gray-100">
                 <h4 className="text-sm font-bold text-gray-900 mb-3">Risk Level</h4>
                 <div className="space-y-2">

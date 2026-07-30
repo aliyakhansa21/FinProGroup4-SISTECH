@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
-// Import peta secara dinamis untuk menghindari error SSR
 const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
 
 export default function ReportForm() {
@@ -11,27 +10,10 @@ export default function ReportForm() {
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
     const [message, setMessage] = useState(null);
-    const [isOffline, setIsOffline] = useState(false);    
     const [isMapOpen, setIsMapOpen] = useState(false);
-
-    // Menyimpan koordinat yang sedang ditunjuk sebelum menekan "Confirm" (SEMENTARA)
+    
     const [tempCoords, setTempCoords] = useState({ lat: 41.8781, lng: -87.6298 });
-    // Koordinat fix yang akan dikirim ke API setelah user menekan "Confirm Location"
     const [finalCoords, setFinalCoords] = useState(null);
-
-    useEffect(() => {
-        setIsOffline(!navigator.onLine);
-        const handleOnline = () => setIsOffline(false);
-        const handleOffline = () => setIsOffline(true);
-
-        window.addEventListener("online", handleOnline);
-        window.addEventListener("offline", handleOffline);
-
-        return () => {
-            window.removeEventListener("online", handleOnline);
-            window.removeEventListener("offline", handleOffline);
-        };
-    }, []);
 
     const isFormValid = incidentType !== "" && location !== "";
 
@@ -39,34 +21,34 @@ export default function ReportForm() {
         e.preventDefault();
         if (!isFormValid) return;
 
+        // Menyusun data agar formatnya identik dengan mockHeatmapData.json
         const reportData = {
+            id: `local-${Date.now()}`,
+            latitude: finalCoords ? finalCoords.lat : 41.8781,
+            longitude: finalCoords ? finalCoords.lng : -87.6298,
+            risk_score: 95, // Laporan user langsung di-set risiko tinggi
+            risk_category: "Very High",
             incidentType,
-            location,
             description,
             timestamp: new Date().toISOString(),
         };
 
-        if (isOffline) {
-            const existingDrafts = JSON.parse(localStorage.getItem("offlineReports") || "[]");
-            existingDrafts.push(reportData);
-            localStorage.setItem("offlineReports", JSON.stringify(existingDrafts));
-            
-            setMessage({ type: "error", text: "Connection lost. Report saved as draft and will retry upon network reconnect." });
-            return;
-        }
+        // Simpan ke localStorage sebagai simulasi database lokal
+        const existingReports = JSON.parse(localStorage.getItem("localReports") || "[]");
+        existingReports.push(reportData);
+        localStorage.setItem("localReports", JSON.stringify(existingReports));
 
         setTimeout(() => {
-            setMessage({ type: "success", text: "Anonymous Report Submitted Successfully" });
+            setMessage({ type: "success", text: "Anonymous Report Submitted Successfully! Check the Heatmap." });
             setIncidentType("");
             setLocation("");
             setDescription("");
+            setFinalCoords(null);
         }, 500);
     };
 
-    // Fungsi simulasi saat user menekan "Confirm Location" di peta
     const handleConfirmLocation = () => {
         setFinalCoords(tempCoords);
-        // show 4 decimal places for better readability
         setLocation(`Lat: ${tempCoords.lat.toFixed(4)}, Lng: ${tempCoords.lng.toFixed(4)}`); 
         setIsMapOpen(false);
     };
@@ -136,10 +118,8 @@ export default function ReportForm() {
                 </button>
             </form>
 
-            {/* MODAL FULL-SCREEN PETA */}
             {isMapOpen && (
                 <div className="fixed inset-0 z-50 flex flex-col bg-gray-50">
-                    {/* Header Modal */}
                     <div className="bg-white px-4 py-4 flex items-center border-b border-gray-200">
                         <button onClick={() => setIsMapOpen(false)} className="mr-4 text-gray-800">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,16 +130,15 @@ export default function ReportForm() {
                     </div>
 
                     <div className="flex-1 relative bg-gray-200 flex flex-col items-center justify-center">
-                        <p className="absolute top-6 text-gray-500 font-medium z-10 bg-white/80 px-4 py-2 rounded-full text-sm shadow-sm">
-                            Tap on the map to select the location
+                        <p className="absolute top-6 text-gray-700 font-medium z-[401] bg-white/90 px-4 py-2 rounded-full text-sm shadow-md">
+                            Geser peta untuk memilih lokasi
                         </p>
-
+                        
                         <MapPicker onLocationSelect={(coords) => setTempCoords(coords)} />
                     </div>
 
-                    {/* Footer / Bottom Sheet Modal */}
                     <div className="bg-white p-6 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-3xl">
-                        <div className="h-12 w-full border border-gray-300 rounded-xl mb-4 bg-gray-50 flex items-center px-4 text-gray-500 text-sm">
+                        <div className="h-12 w-full border border-gray-300 rounded-xl mb-4 bg-gray-50 flex items-center px-4 text-gray-700 font-mono text-sm">
                             {tempCoords.lat.toFixed(5)}, {tempCoords.lng.toFixed(5)}
                         </div>
                         <button 
