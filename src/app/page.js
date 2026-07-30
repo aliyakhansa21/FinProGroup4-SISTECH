@@ -22,6 +22,13 @@ export default function HomePage() {
           />
         </Link>
 
+        <Link href="/heatmap" className="block w-full">
+          <FeatureCard
+            title="Interactive Heatmap"
+            description="View live incident visualizations and risk zones in your area."
+          />
+        </Link>
+
         <FeatureCard
           title="Safe Route"
           description="Find a safer route for your journey."
