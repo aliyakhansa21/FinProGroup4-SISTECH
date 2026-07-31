@@ -29,11 +29,12 @@ export default function HomePage() {
           />
         </Link>
 
-        <FeatureCard
-          title="Safe Route"
-          description="Find a safer route for your journey."
-          disabled
-        />
+        <Link href="/safe_route" className="block w-full">
+          <FeatureCard
+            title="Safe Route"
+            description="Find a safer route for your journey."
+          />
+        </Link>
 
         <FeatureCard
           title="Emergency SOS"
