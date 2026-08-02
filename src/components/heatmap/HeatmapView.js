@@ -7,12 +7,20 @@ import mockData from "@/data/mockHeatmapData.json";
 
 export default function HeatmapView() {
     const defaultCenter = [41.8781, -87.6298]; 
-    const [combinedData, setCombinedData] = useState([]);
+    const [combinedData, setCombinedData] = useState(mockData);
 
-    // Mengambil data lokal dan menggabungkannya dengan mockData
     useEffect(() => {
-        const localReports = JSON.parse(localStorage.getItem("localReports") || "[]");
-        setCombinedData([...mockData, ...localReports]);
+        const local = localStorage.getItem("localReports");
+        if (local) {
+            try {
+                const localReports = JSON.parse(local);
+                if (Array.isArray(localReports) && localReports.length > 0) {
+                    setCombinedData(prev => [...prev, ...localReports]);
+                }
+            } catch (err) {
+                console.error("Failed to parse localReports", err);
+            }
+        }
     }, []);
 
     const getRiskColor = (category) => {

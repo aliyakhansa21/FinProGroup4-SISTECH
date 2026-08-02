@@ -8,7 +8,7 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-export default function RouteMap({ route }) {
+export default function RouteMap({ route, height = "420px" }) {
   const startPoint = [41.8781, -87.6298];
 
   const routeCoordinates = route?.coordinates || [
@@ -20,8 +20,18 @@ export default function RouteMap({ route }) {
 
   const endPoint = routeCoordinates[routeCoordinates.length - 1];
 
+  const getRouteColor = (risk) => {
+    if (!risk) return "#111827";
+    if (risk.includes("Low")) return "#10B981"; // Emerald
+    if (risk.includes("Medium")) return "#F59E0B"; // Amber
+    return "#EF4444"; // Red
+  };
+
   return (
-    <div className="relative z-0 h-[420px] w-full overflow-hidden rounded-2xl">
+    <div
+      // Hapus style height 420px, ganti jadi h-full w-full. Hapus juga rounded-2xl dan border
+      className="relative z-0 h-full w-full overflow-hidden bg-gray-200"
+    >
       <MapContainer
         center={startPoint}
         zoom={14}
@@ -36,8 +46,9 @@ export default function RouteMap({ route }) {
         <Polyline
           positions={routeCoordinates}
           pathOptions={{
-            color: "#111827",
-            weight: 5,
+            color: getRouteColor(route?.risk),
+            weight: 6,
+            opacity: 0.9,
           }}
         />
 
@@ -56,8 +67,8 @@ export default function RouteMap({ route }) {
           center={endPoint}
           radius={9}
           pathOptions={{
-            color: "#111827",
-            fillColor: "#111827",
+            color: getRouteColor(route?.risk),
+            fillColor: getRouteColor(route?.risk),
             fillOpacity: 1,
             weight: 3,
           }}
