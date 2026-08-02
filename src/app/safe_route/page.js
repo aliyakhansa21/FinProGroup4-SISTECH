@@ -3,7 +3,7 @@
 import { useState } from "react";
 import SearchSheet from "@/components/safe-route/sheets/SearchSheet";
 import SafeRouteLayout from "@/components/safe-route/SafeRouteLayout";
-import RouteMap from "@/components/safe-route/map/RouteMap";
+import dynamic from "next/dynamic";
 import FloatingHeader from "@/components/safe-route/overlays/FloatingHeader";
 import FloatingActions from "@/components/safe-route/overlays/FloatingActions";
 import RouteSelectionSheet from "@/components/safe-route/sheets/RouteSelectionSheet";
@@ -16,6 +16,11 @@ const recentSearches = [
   "Campus",
   "Mall Taman Anggrek",
 ];
+
+const RouteMap = dynamic(
+  () => import("@/components/safe-route/map/RouteMap"),
+  { ssr: false }
+);
 
 const mockRoutes = [
   { id: 1, name: "Safest Route", duration: "18 min", distance: "1.4 km", safetyScore: 84, category: "Safest", tags: ["Well-lit", "Cameras nearby", "Popular path"] },
