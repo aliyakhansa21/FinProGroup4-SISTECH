@@ -1,163 +1,79 @@
-'use client';
+// src/components/sos/hooks/useSOS.js
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from "react";
+import { createSOSSession, shareSOSLink } from "@/services/sosService";
 
-const INITIAL_CONTACTS = [
-  {
-    id: '1',
-    name: 'Budi Santoso',
-    relation: 'Ayah (Emergency Contact 1)',
-    phone: '+62 812-3456-7890',
-    status: 'Notified',
-    avatarBg: 'bg-blue-100 text-blue-700',
-  },
-  {
-    id: '2',
-    name: 'Siti Rahmawati',
-    relation: 'Ibu (Emergency Contact 2)',
-    phone: '+62 813-9876-5432',
-    status: 'Notified',
-    avatarBg: 'bg-pink-100 text-pink-700',
-  },
-  {
-    id: '3',
-    name: 'Layanan Darurat 112',
-    relation: 'Pusat Panggilan Darurat',
-    phone: '112',
-    status: 'Connecting...',
-    avatarBg: 'bg-red-100 text-red-700',
-  },
-];
+export function useSOS() {
+  const [step, setStep] = useState("idle"); // idle | holding | sending | shared | completed
+  const [holdProgress, setHoldProgress] = useState(0); // 0 to 100
+  const [session, setSession] = useState(null);
+  const [emergencyNote, setEmergencyNote] = useState("");
 
-export function useSOS(initialCountdownDuration = 5) {
-  const [sosStatus, setSosStatus] = useState('idle'); // 'idle' | 'countdown' | 'sent' | 'ended'
-  const [countdown, setCountdown] = useState(initialCountdownDuration);
-  const [isSirenActive, setIsSirenActive] = useState(false);
-  const [isSafeModalOpen, setIsSafeModalOpen] = useState(false);
-  const [contacts, setContacts] = useState(INITIAL_CONTACTS);
-  const [sosStartTime, setSosStartTime] = useState(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const holdTimerRef = useRef(null);
+  const startTimeRef = useRef(null);
 
-  const [userLocation, setUserLocation] = useState({
-    address: 'Jl. Jend. Sudirman No. 12, Jakarta Selatan',
-    lat: -6.2088,
-    lng: 106.8456,
-    accuracy: 'Akurat (±4m)',
-  });
+  // Jalankan perhitungan tahan 5 detik
+  const startHold = () => {
+    if (step !== "idle") return;
+    setStep("holding");
+    startTimeRef.current = Date.now();
 
-  const timerRef = useRef(null);
-  const elapsedTimerRef = useRef(null);
+    holdTimerRef.current = setInterval(() => {
+      const elapsedTime = Date.now() - startTimeRef.current;
+      const progress = Math.min((elapsedTime / 5000) * 100, 100);
+      setHoldProgress(progress);
 
-  // Handle Countdown logic
+      if (progress >= 100) {
+        clearInterval(holdTimerRef.current);
+        triggerSOS();
+      }
+    }, 50);
+  };
+
+  // Lepaskan tahan lebih awal -> reset
+  const cancelHold = () => {
+    if (step === "holding") {
+      clearInterval(holdTimerRef.current);
+      setHoldProgress(0);
+      setStep("idle");
+    }
+  };
+
+  // Aktifkan SOS setelah 5 detik tercapai
+  const triggerSOS = async () => {
+    setStep("sending");
+    const newSession = createSOSSession(emergencyNote);
+    setSession(newSession);
+
+    // Otomatis picu dialog bagikan native
+    await shareSOSLink(newSession.token, emergencyNote);
+    setStep("shared");
+  };
+
+  // Menghentikan mode SOS (Selesai/Aman)
+  const completeSOS = () => {
+    setStep("completed");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("active_sos_session");
+    }
+  };
+
   useEffect(() => {
-    if (sosStatus === 'countdown') {
-      timerRef.current = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            setElapsedSeconds(0);
-            setSosStatus('sent');
-            setSosStartTime(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (holdTimerRef.current) clearInterval(holdTimerRef.current);
     };
-  }, [sosStatus]);
-
-  // Handle elapsed time after SOS is sent
-  useEffect(() => {
-    if (sosStatus === 'sent') {
-      elapsedTimerRef.current = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
-    } else {
-      if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
-    }
-
-    return () => {
-      if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
-    };
-  }, [sosStatus]);
-
-  const startSOS = () => {
-    setCountdown(initialCountdownDuration);
-    setSosStatus('countdown');
-  };
-
-  const cancelSOS = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setSosStatus('idle');
-    setCountdown(initialCountdownDuration);
-  };
-
-  const triggerSending = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setCountdown(0);
-    setElapsedSeconds(0);
-    setSosStatus('sent');
-    setSosStartTime(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
-  };
-
-  const openSafeModal = () => {
-    setIsSafeModalOpen(true);
-  };
-
-  const closeSafeModal = () => {
-    setIsSafeModalOpen(false);
-  };
-
-  const confirmSafe = () => {
-    setIsSirenActive(false);
-    setIsSafeModalOpen(false);
-    setSosStatus('ended');
-  };
-
-  const resetSOS = () => {
-    setSosStatus('idle');
-    setIsSirenActive(false);
-    setIsSafeModalOpen(false);
-    setCountdown(initialCountdownDuration);
-    setElapsedSeconds(0);
-  };
-
-  const toggleSiren = () => {
-    setIsSirenActive((prev) => !prev);
-  };
-
-  const callContact = (phone) => {
-    if (typeof window !== 'undefined') {
-      window.location.href = `tel:${phone}`;
-    }
-  };
+  }, []);
 
   return {
-    sosStatus,
-    countdown,
-    initialCountdownDuration,
-    isSirenActive,
-    isSafeModalOpen,
-    contacts,
-    userLocation,
-    sosStartTime,
-    elapsedSeconds,
-    startSOS,
-    cancelSOS,
-    triggerSending,
-    openSafeModal,
-    closeSafeModal,
-    confirmSafe,
-    resetSOS,
-    toggleSiren,
-    callContact,
+    step,
+    holdProgress,
+    session,
+    emergencyNote,
+    setEmergencyNote,
+    startHold,
+    cancelHold,
+    completeSOS,
+    reShare: () => session && shareSOSLink(session.token, emergencyNote),
   };
 }
-
-export default useSOS;
