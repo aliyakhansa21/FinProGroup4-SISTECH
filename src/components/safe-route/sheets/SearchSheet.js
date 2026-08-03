@@ -7,28 +7,51 @@ import {
   Clock3,
   ChevronRight,
   X,
+  Bookmark,
 } from "lucide-react";
-
-const quickDestinations = [
-  "Home",
-  "Kos",
-  "Friend's",
-  "University",
-];
-
-const address = {
-  Home: "Jl. Boulevard Raya, Kelapa Gading",
-  Campus: "Jl. Halim Raya No.2, Tebet",
-  "Mall Taman Anggrek": "Jl. Letjen S. Parman Kav.21",
-};
+import { useState, useEffect } from "react";
 
 export default function SearchSheet({
   destination,
   setDestination,
-  recentSearches,
-  onRecentSearch,
   onContinue,
 }) {
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [savedLocations, setSavedLocations] = useState([]);
+
+  useEffect(() => {
+    const storedRecent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+    const storedSaved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
+    setRecentSearches(storedRecent);
+    setSavedLocations(storedSaved);
+  }, []);
+
+  const saveRecent = (dest) => {
+    if (!dest) return;
+    const updated = [dest, ...recentSearches.filter(s => s !== dest)].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  };
+
+  const handleContinueClick = () => {
+    saveRecent(destination);
+    onContinue();
+  };
+
+  const removeRecent = (dest, e) => {
+    e.stopPropagation();
+    const updated = recentSearches.filter(s => s !== dest);
+    setRecentSearches(updated);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  };
+
+  const saveToSavedLocations = (dest, e) => {
+    e.stopPropagation();
+    if (savedLocations.includes(dest)) return;
+    const updated = [...savedLocations, dest];
+    setSavedLocations(updated);
+    localStorage.setItem('savedLocations', JSON.stringify(updated));
+  };
   return (
     <div className="w-full rounded-t-[32px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col min-h-[calc(100vh-120px)]">
 
@@ -96,7 +119,7 @@ export default function SearchSheet({
 
       <div className="mt-4 flex gap-2 overflow-x-auto">
 
-        {quickDestinations.map((item) => (
+        {savedLocations.map((item) => (
           <button
             key={item}
             onClick={() => setDestination(item)}
@@ -106,64 +129,52 @@ export default function SearchSheet({
           </button>
         ))}
 
-        <button className="h-10 w-10 rounded-full border flex items-center justify-center">
-
-          <ChevronRight size={18} />
-
-        </button>
-
       </div>
 
       {/* Recent */}
 
       <div className="mt-8 space-y-5 mb-8">
-
-        {recentSearches.map((item) => (
-          <button
-            key={item}
-            onClick={() => onRecentSearch(item)}
-            className="flex w-full items-start gap-4 text-left"
-          >
-
-            <div className="mt-1">
-
-              <Clock3
-                size={18}
-                className="text-gray-400"
-              />
-
-            </div>
-
-            <div className="flex-1">
-
-              <h3 className="font-semibold text-gray-900">
-
-                {item}
-
-              </h3>
-
-              <p className="text-xs text-gray-500">
-
-                {address[item]}
-
-              </p>
-
-            </div>
-
-            <X
-              size={16}
-              className="text-gray-400"
-            />
-
-          </button>
-        ))}
-
+        <h2 className="font-semibold text-gray-900 mb-2">Recent Searches</h2>
+        
+        {recentSearches.length === 0 ? (
+          <p className="text-sm text-gray-500 italic">No Recent Location</p>
+        ) : (
+          recentSearches.map((item) => (
+            <button
+              key={item}
+              onClick={() => setDestination(item)}
+              className="flex w-full items-start gap-4 text-left group"
+            >
+              <div className="mt-1">
+                <Clock3 size={18} className="text-gray-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900">{item}</h3>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {!savedLocations.includes(item) && (
+                  <Bookmark
+                    size={16}
+                    className="text-gray-400 hover:text-indigo-600 transition"
+                    onClick={(e) => saveToSavedLocations(item, e)}
+                  />
+                )}
+                <X
+                  size={16}
+                  className="text-gray-400 hover:text-red-500 transition"
+                  onClick={(e) => removeRecent(item, e)}
+                />
+              </div>
+            </button>
+          ))
+        )}
       </div>
 
       {/* Continue */}
 
       <button
-        onClick={onContinue}
+        onClick={handleContinueClick}
         disabled={!destination}
         className="mt-auto w-full rounded-full bg-gray-900 py-4 font-semibold text-white disabled:bg-gray-300"
       >
