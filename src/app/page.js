@@ -36,11 +36,12 @@ export default function HomePage() {
           />
         </Link>
 
-        <FeatureCard
-          title="Emergency SOS"
-          description="Quickly notify your emergency contacts."
-          disabled
-        />
+        <Link href="/sos" className="block w-full">
+          <FeatureCard
+            title="Emergency SOS"
+            description="Quickly notify your emergency contacts."
+          />
+        </Link>
 
         <FeatureCard
           title="Smart Sharelock"
