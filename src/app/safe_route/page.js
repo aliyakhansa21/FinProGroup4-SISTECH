@@ -11,11 +11,6 @@ import NavigationSheet from "@/components/safe-route/sheets/NavigationSheet";
 import ArrivalSheet from "@/components/safe-route/sheets/ArrivalSheet";
 import ConfirmModal from "@/components/safe-route/overlays/ConfirmModal";
 
-const recentSearches = [
-  "Home",
-  "Campus",
-  "Mall Taman Anggrek",
-];
 
 const RouteMap = dynamic(
   () => import("@/components/safe-route/map/RouteMap"),
@@ -67,8 +62,6 @@ export default function SafeRoutePage() {
             <SearchSheet
               destination={destination}
               setDestination={setDestination}
-              recentSearches={recentSearches}
-              onRecentSearch={setDestination}
               onContinue={handleSearchContinue}
             />
           </div>
