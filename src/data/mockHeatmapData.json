@@ -1,0 +1,56 @@
+[
+    {
+        "id": "hm-001",
+        "latitude": 41.8781,
+        "longitude": -87.6298,
+        "risk_score": 15,
+        "risk_category": "Low",
+        "timestamp": "2026-07-30T20:15:00+07:00",
+        "description": "Area terpantau aman dan ramai pejalan kaki."
+    },
+    {
+        "id": "hm-002",
+        "latitude": 41.8825,
+        "longitude": -87.6243,
+        "risk_score": 45,
+        "risk_category": "Medium",
+        "timestamp": "2026-07-30T21:30:00+07:00",
+        "description": "Pencahayaan jalan agak redup, disarankan waspada."
+    },
+    {
+        "id": "hm-003",
+        "latitude": 41.8756,
+        "longitude": -87.6325,
+        "risk_score": 82,
+        "risk_category": "High",
+        "timestamp": "2026-07-30T22:00:00+07:00",
+        "description": "Terdapat laporan insiden baru-baru ini di sekitar rute ini."
+    },
+    {
+        "id": "hm-004",
+        "latitude": 41.8802,
+        "longitude": -87.6350,
+        "risk_score": 95,
+        "risk_category": "Very High",
+        "timestamp": "2026-07-30T23:10:00+07:00",
+        "description": "Area rawan, sangat disarankan untuk mencari rute alternatif."
+    },
+    {
+        "id": "hm-005",
+        "latitude": 41.8740,
+        "longitude": -87.6270,
+        "risk_score": 65,
+        "risk_category": "Medium",
+        "timestamp": "2026-07-30T19:45:00+07:00",
+        "description": "Kondisi sepi karena di luar jam kerja."
+    },
+    {
+        "id": "hm-006",
+        "latitude": 41.8840,
+        "longitude": -87.6300,
+        "risk_score": 25,
+        "risk_category": "Low",
+        "timestamp": "2026-07-30T18:20:00+07:00",
+        "description": "Dekat dengan pos keamanan lokal."
+    }
+]
