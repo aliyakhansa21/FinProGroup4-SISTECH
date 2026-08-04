@@ -22,22 +22,15 @@ export default function RouteSelectionSheet({
         <div className="h-1.5 w-12 rounded-full bg-gray-300" />
       </div>
 
-      <div className="flex flex-col flex-1 overflow-hidden px-6 pt-4 pb-8">
-
-        {/* Close */}
-        <div className="flex shrink-0 justify-end">
-          <button onClick={onBack} className="text-3xl text-gray-500">
-            ×
-          </button>
-        </div>
+      <div className="flex flex-col flex-1 overflow-hidden px-4 pt-2 pb-4">
 
         {/* Tabs */}
-        <div className="mt-2 flex shrink-0 gap-2">
+        <div className="mt-1 flex shrink-0 gap-2 overflow-x-auto no-scrollbar pb-1">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`rounded-full px-4 py-1.5 text-sm transition
+              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition
               ${
                 activeTab === tab
                   ? "bg-gray-900 text-white"
@@ -50,7 +43,7 @@ export default function RouteSelectionSheet({
         </div>
 
         {/* Cards */}
-        <div className="mt-5 flex-1 space-y-4 overflow-y-auto pr-2 pb-2">
+        <div className="mt-3 flex-1 space-y-3 overflow-y-auto pr-1 pb-1">
           {recommendedRoutes
             .filter((route) => route.category === activeTab)
             .map((route) => (
@@ -66,9 +59,9 @@ export default function RouteSelectionSheet({
         <button
           onClick={onContinue}
           disabled={!selectedRoute}
-          className="mt-6 shrink-0 w-full rounded-xl bg-gray-900 py-4 font-semibold text-white disabled:bg-gray-300 transition hover:bg-gray-800"
+          className="mt-3 shrink-0 w-full rounded-full bg-gray-900 py-3 font-semibold text-white disabled:bg-gray-300 transition hover:bg-gray-800"
         >
-          Start Navigation →
+          Start Navigation
         </button>
 
       </div>
