@@ -20,10 +20,18 @@ export default function SearchSheet({
   const [savedLocations, setSavedLocations] = useState([]);
 
   useEffect(() => {
-    const storedRecent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
-    const storedSaved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
-    setRecentSearches(storedRecent);
-    setSavedLocations(storedSaved);
+    try {
+      const storedRecent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+      const sanitizedRecent = storedRecent.map(item => typeof item === 'string' ? item : item?.name || item?.address);
+      setRecentSearches(sanitizedRecent.filter(Boolean));
+
+      const storedSaved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
+      const sanitizedSaved = storedSaved.map(item => typeof item === 'string' ? item : item?.name || item?.address);
+      setSavedLocations(sanitizedSaved.filter(Boolean));
+    } catch(e) {
+      setRecentSearches([]);
+      setSavedLocations([]);
+    }
   }, []);
 
   const saveRecent = (dest) => {
