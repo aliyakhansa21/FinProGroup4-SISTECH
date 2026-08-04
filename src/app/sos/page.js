@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSOS } from "@/components/sos/hooks/useSOS";
 import SOSButton from "@/components/sos/ui/SOSButton";
+import { playSirenSound, stopSirenSound } from "@/lib/sirenAudio";
+
+const DEFAULT_EMERGENCY_MSG = "Hi, ini darurat! Saya mengaktifkan SOS dan mungkin butuh bantuan. Pantau lokasi saya di sini.";
 
 export default function SOSPage() {
   const router = useRouter();
@@ -16,23 +19,44 @@ export default function SOSPage() {
     startHold,
     cancelHold,
     completeSOS,
+    reShare,
   } = useSOS();
 
-  // State Screen 1
-  const [shareLiveLocation, setShareLiveLocation] = useState(true);
-  const [isEditingNote, setIsEditingNote] = useState(false);
+  // 1. Trigger audio sirine berdasarkan step
+  useEffect(() => {
+    if (step === "sending" || step === "shared") {
+      playSirenSound();
+    } else {
+      stopSirenSound();
+    }
+    return () => stopSirenSound();
+  }, [step]);
 
-  // State Modal Safety Confirmation
+  // Set default message jika emergencyNote masih kosong saat render pertama
+  useEffect(() => {
+    if (!emergencyNote) {
+      setEmergencyNote(DEFAULT_EMERGENCY_MSG);
+    }
+  }, []);
+
+  const [shareLiveLocation, setShareLiveLocation] = useState(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  // Mock Contacts
+  // Form Tambah Kontak
+  const [isAddingContact, setIsAddingContact] = useState(false);
+  const [newContact, setNewContact] = useState({ name: "", phone: "" });
+
+  // Ref Textarea Pesan
+  const messageInputRef = useRef(null);
+
+  // Initial Contacts Data
   const [contacts, setContacts] = useState([
     { id: "1", name: "Jesse R.", phone: "+1 (555) 050-6060", avatar: "JR", selected: true, status: "Notified" },
     { id: "2", name: "Dad", phone: "+1 (555) 030-4040", avatar: "D", selected: true, status: "Notified" },
     { id: "3", name: "Maya R.", phone: "+1 (555) 010-2020", avatar: "MR", selected: true, status: "Notified" },
   ]);
 
-  // Mock Nearby Safe Places
+  // Nearby Safe Places Data
   const nearbyPlaces = [
     { id: "p1", name: "Police Station", distance: "300 m", icon: "🚓" },
     { id: "p2", name: "Hospital", distance: "450 m", icon: "🏥" },
@@ -45,8 +69,26 @@ export default function SOSPage() {
     );
   };
 
-  // Countdown timer untuk Screen 2 (5 detik sebelum otomatis berpindah ke Screen 3 / shared)
-  const [countdown, setCountdown] = useState(5);
+  const handleSaveNewContact = () => {
+    if (newContact.name.trim() && newContact.phone.trim()) {
+      setContacts((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          name: newContact.name,
+          phone: newContact.phone,
+          avatar: newContact.name.substring(0, 2).toUpperCase(),
+          selected: true,
+          status: "Notified",
+        },
+      ]);
+      setNewContact({ name: "", phone: "" });
+      setIsAddingContact(false);
+    }
+  };
+
+  // Countdown timer untuk Screen 2
+  const [countdown, setCountdown] = useState(3);
   useEffect(() => {
     let timer;
     if (step === "sending" && countdown > 0) {
@@ -58,7 +100,7 @@ export default function SOSPage() {
   }, [step, countdown]);
 
   // Timer Durasi Berbagi Lokasi untuk Screen 3
-  const [secondsActive, setSecondsActive] = useState(5456); // 1 jam 30 menit 56 detik contoh
+  const [secondsActive, setSecondsActive] = useState(5456);
   useEffect(() => {
     let interval;
     if (step === "shared") {
@@ -74,6 +116,15 @@ export default function SOSPage() {
     const mins = Math.floor((totalSeconds % 3600) / 60);
     const secs = totalSeconds % 60;
     return `${hrs}:${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  const formatSummaryDuration = (totalSeconds) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    if (hrs > 0) {
+      return `${hrs} hr ${mins} mins`;
+    }
+    return `${mins} mins`;
   };
 
   const handleConfirmCancel = () => {
@@ -98,11 +149,11 @@ export default function SOSPage() {
           <h1 className="text-lg md:text-xl font-bold text-gray-900">Emergency SOS</h1>
         </div>
 
-        {/* ==================== SCREEN 1: IDLE / HOLDING ==================== */}
+        {/* SCREEN 1: IDLE / HOLDING */}
         {(step === "idle" || step === "holding") && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             
-            {/* KOLOM KIRI (Desktop): Hero Section Tombol SOS */}
+            {/* Kolom Kiri: Hero SOS Button */}
             <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-100 rounded-3xl p-6 md:p-10 shadow-sm h-full">
               <SOSButton
                 onStartHold={startHold}
@@ -118,22 +169,26 @@ export default function SOSPage() {
               </p>
             </div>
 
-            {/* KOLOM KANAN (Desktop): Settings Cards */}
+            {/* Kolom Kanan: Settings Cards */}
             <div className="flex flex-col gap-5">
               
               {/* Card 1: Trusted Contacts */}
               <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-dashed border-gray-100 pb-3">
                   <h3 className="text-sm font-bold text-gray-900">Trusted contacts</h3>
-                  <button type="button" className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700">
-                    ✏️
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingContact(!isAddingContact)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700"
+                  >
+                    {isAddingContact ? "✕" : "✏️"}
                   </button>
                 </div>
 
                 {/* Toggle Share Live Location */}
                 <div className="flex items-center justify-between rounded-2xl bg-pink-50/60 p-3">
                   <span className="text-xs font-medium text-gray-700 leading-snug">
-                    Share Live Location to Trusted Contacts?
+                     Share Emergency Location to Trusted Contacts?
                   </span>
                   <input
                     type="checkbox"
@@ -144,7 +199,7 @@ export default function SOSPage() {
                 </div>
 
                 {/* Contact List */}
-                <div className="flex flex-col gap-2">
+                <div className={`flex flex-col gap-2 transition-opacity ${!shareLiveLocation ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
                   {contacts.map((contact) => (
                     <div
                       key={contact.id}
@@ -165,6 +220,34 @@ export default function SOSPage() {
                       </div>
                     </div>
                   ))}
+
+                  {/* Form Tambah Kontak Baru */}
+                  {isAddingContact && (
+                    <div className="mt-2 flex flex-col gap-3 rounded-2xl border border-pink-100 bg-pink-50/50 p-4">
+                      <input
+                        type="text"
+                        placeholder="Nama Kontak (mis: Ibu)"
+                        value={newContact.name}
+                        onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                        className="w-full rounded-xl border border-gray-200 p-2.5 text-xs outline-none focus:border-pink-500 bg-white"
+                      />
+                      <input
+                        type="tel"
+                        placeholder="Nomor Telepon (mis: +62...)"
+                        value={newContact.phone}
+                        onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                        className="w-full rounded-xl border border-gray-200 p-2.5 text-xs outline-none focus:border-pink-500 bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveNewContact}
+                        disabled={!newContact.name || !newContact.phone}
+                        className="w-full rounded-xl bg-pink-500 py-2.5 text-xs font-bold text-white transition hover:bg-pink-600 disabled:bg-pink-300"
+                      >
+                        Simpan Kontak
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -177,37 +260,32 @@ export default function SOSPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setIsEditingNote(!isEditingNote)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700"
+                    onClick={() => messageInputRef.current?.focus()}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700 hover:bg-amber-200 transition"
+                    title="Edit Pesan"
                   >
                     ✏️
                   </button>
                 </div>
 
-                {isEditingNote ? (
-                  <textarea
-                    rows={3}
-                    value={emergencyNote}
-                    onChange={(e) => setEmergencyNote(e.target.value)}
-                    placeholder="Edit pesan darurat Anda..."
-                    className="w-full rounded-2xl border border-gray-200 p-3 text-xs outline-none focus:border-pink-500"
-                  />
-                ) : (
-                  <div className="rounded-2xl bg-pink-50/50 p-3 text-xs italic text-pink-900 leading-relaxed">
-                    "{emergencyNote || "Hi, ini darurat! Saya mengaktifkan SOS dan mungkin butuh bantuan. Pantau lokasi saya di sini."}"
-                  </div>
-                )}
+                <textarea
+                  ref={messageInputRef}
+                  rows={3}
+                  value={emergencyNote}
+                  onChange={(e) => setEmergencyNote(e.target.value)}
+                  placeholder={DEFAULT_EMERGENCY_MSG}
+                  className="w-full resize-none rounded-2xl bg-pink-50/50 p-3 text-xs italic text-pink-900 leading-relaxed outline-none border border-transparent transition focus:border-pink-300 focus:bg-white"
+                />
               </div>
 
             </div>
           </div>
         )}
 
-        {/* ==================== SCREEN 2: SENDING EMERGENCY SOS ==================== */}
+        {/* SCREEN 2: SENDING EMERGENCY SOS */}
         {step === "sending" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             
-            {/* KOLOM KIRI (Desktop): Countdown Ring & Cancel Button */}
             <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-100 rounded-3xl p-6 md:p-10 shadow-sm h-full gap-4">
               <div className="relative flex items-center justify-center my-2">
                 <svg className="w-44 h-44 -rotate-90 transform" viewBox="0 0 100 100">
@@ -226,7 +304,7 @@ export default function SOSPage() {
                     className="stroke-red-500 transition-all duration-1000 ease-linear"
                     strokeWidth="8"
                     strokeDasharray="251.2"
-                    strokeDashoffset={251.2 - (251.2 * countdown) / 5}
+                    strokeDashoffset={251.2 - (251.2 * countdown) / 3}
                     strokeLinecap="round"
                     fill="transparent"
                   />
@@ -249,7 +327,6 @@ export default function SOSPage() {
               </button>
             </div>
 
-            {/* KOLOM KANAN (Desktop): Status Trusted Contacts */}
             <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-4">
               <h3 className="text-sm font-bold text-gray-900 border-b border-dashed border-gray-100 pb-3">
                 Trusted contacts
@@ -282,14 +359,11 @@ export default function SOSPage() {
           </div>
         )}
 
-        {/* ==================== SCREEN 3: EMERGENCY SOS SENT ==================== */}
+        {/* SCREEN 3: EMERGENCY SOS SENT */}
         {step === "shared" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             
-            {/* KOLOM KIRI (Desktop): Success Hero + Live Duration Timer */}
             <div className="flex flex-col gap-5">
-              
-              {/* Hero Banner Success */}
               <div className="flex flex-col items-center text-center bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-100 text-pink-500 text-3xl mb-3">
                   ✓
@@ -302,7 +376,6 @@ export default function SOSPage() {
                 </p>
               </div>
 
-              {/* Live Location Duration Card */}
               <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-3">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5 font-bold text-gray-800">
@@ -316,7 +389,6 @@ export default function SOSPage() {
                 </div>
               </div>
 
-              {/* Action Button: I'm safe now */}
               <button
                 type="button"
                 onClick={() => setShowCancelModal(true)}
@@ -326,10 +398,7 @@ export default function SOSPage() {
               </button>
             </div>
 
-            {/* KOLOM KANAN (Desktop): Call List & Nearby Safe Places */}
             <div className="flex flex-col gap-5">
-              
-              {/* Trusted Contacts Direct Call List */}
               <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-3">
                 <div className="flex items-center justify-between border-b border-dashed border-gray-100 pb-3">
                   <h3 className="text-sm font-bold text-gray-900">Trusted contacts</h3>
@@ -366,7 +435,6 @@ export default function SOSPage() {
                 </div>
               </div>
 
-              {/* Nearby Safe Places Card */}
               <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-3">
                 <h3 className="text-sm font-bold text-gray-900 border-b border-dashed border-gray-100 pb-3">
                   Nearby Safe Places
@@ -402,16 +470,56 @@ export default function SOSPage() {
           </div>
         )}
 
-        {/* ==================== SCREEN 4: EMERGENCY ENDED ==================== */}
+        {/* SCREEN 4: EMERGENCY ENDED */}
         {step === "completed" && (
-          <div className="flex flex-col items-center py-12 text-center max-w-md mx-auto w-full bg-white rounded-3xl border border-gray-100 p-8">
-            <span className="text-4xl">💗</span>
-            <h2 className="mt-3 text-lg font-bold text-gray-900">Glad you're safe!</h2>
-            <p className="text-xs text-gray-500 mt-1">Live location sharing has stopped.</p>
+          <div className="flex flex-col items-center justify-center max-w-lg mx-auto w-full gap-6 py-4">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-pink-100/70 text-5xl mb-4 animate-bounce">
+                ☁️
+              </div>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900">
+                Glad you're safe! 💗
+              </h2>
+              <p className="text-xs md:text-sm text-gray-500 mt-2 max-w-xs leading-relaxed">
+                Live location sharing has stopped and your trusted contacts have been notified that you're safe.
+              </p>
+            </div>
+
+            <div className="w-full rounded-3xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col gap-4">
+              <h3 className="text-sm font-bold text-gray-900 border-b border-dashed border-gray-100 pb-3">
+                Emergency Summary
+              </h3>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 text-xs text-gray-700">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink-50 text-pink-500">
+                    🕒
+                  </span>
+                  <span className="font-medium">{formatSummaryDuration(secondsActive)}</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-xs text-gray-700">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink-50 text-pink-500">
+                    👥
+                  </span>
+                  <span className="font-medium">
+                    {contacts.filter((c) => c.selected).length} Trusted Contacts
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 text-xs text-gray-700">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink-50 text-pink-500">
+                    📍
+                  </span>
+                  <span className="font-medium">Location sharing stopped</span>
+                </div>
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={() => router.push("/")}
-              className="mt-6 w-full rounded-2xl bg-pink-500 py-3 text-xs font-bold text-white"
+              className="w-full rounded-2xl bg-pink-500 py-3.5 text-xs md:text-sm font-bold text-white transition hover:bg-pink-600 shadow-sm"
             >
               Back to Home
             </button>
@@ -420,7 +528,7 @@ export default function SOSPage() {
 
       </div>
 
-      {/* ==================== SAFETY CONFIRMATION MODAL ==================== */}
+      {/* SAFETY CONFIRMATION MODAL */}
       {showCancelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl flex flex-col items-center text-center gap-3">

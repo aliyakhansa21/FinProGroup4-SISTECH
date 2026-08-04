@@ -13,7 +13,6 @@ export function useSOS() {
   const holdTimerRef = useRef(null);
   const startTimeRef = useRef(null);
 
-  // Jalankan perhitungan tahan 5 detik
   const startHold = () => {
     if (step !== "idle") return;
     setStep("holding");
@@ -21,7 +20,7 @@ export function useSOS() {
 
     holdTimerRef.current = setInterval(() => {
       const elapsedTime = Date.now() - startTimeRef.current;
-      const progress = Math.min((elapsedTime / 5000) * 100, 100);
+      const progress = Math.min((elapsedTime / 3000) * 100, 100); 
       setHoldProgress(progress);
 
       if (progress >= 100) {
