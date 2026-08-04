@@ -8,6 +8,7 @@ import {
   ChevronRight,
   X,
   Bookmark,
+  ArrowUp,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -18,12 +19,25 @@ export default function SearchSheet({
 }) {
   const [recentSearches, setRecentSearches] = useState([]);
   const [savedLocations, setSavedLocations] = useState([]);
+  const [origin, setOrigin] = useState("Lokasi kamu sekarang");
+  const [isManagingSaved, setIsManagingSaved] = useState(false);
+  
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [locationToSave, setLocationToSave] = useState(null);
+  const [saveAsCategory, setSaveAsCategory] = useState("Rumah");
+  const [customName, setCustomName] = useState("");
 
   useEffect(() => {
     const storedRecent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
     const storedSaved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
+    
+    const migratedSaved = storedSaved.map(item => {
+      if (typeof item === 'string') return { name: item, address: item };
+      return item;
+    });
+
     setRecentSearches(storedRecent);
-    setSavedLocations(storedSaved);
+    setSavedLocations(migratedSaved);
   }, []);
 
   const saveRecent = (dest) => {
@@ -45,30 +59,45 @@ export default function SearchSheet({
     localStorage.setItem('recentSearches', JSON.stringify(updated));
   };
 
-  const saveToSavedLocations = (dest, e) => {
+  const handleOpenSaveModal = (dest, e) => {
     e.stopPropagation();
-    if (savedLocations.includes(dest)) return;
-    const updated = [...savedLocations, dest];
+    setLocationToSave(dest);
+    setSaveAsCategory("Rumah");
+    setCustomName("");
+    setIsSaveModalOpen(true);
+  };
+
+  const confirmSaveLocation = () => {
+    let finalName = locationToSave;
+    if (saveAsCategory === "Rumah") finalName = "Rumah";
+    else if (saveAsCategory === "Lainnya" && customName.trim()) finalName = customName.trim();
+
+    if (!savedLocations.some(s => s.address === locationToSave)) {
+      const updated = [...savedLocations, { name: finalName, address: locationToSave }];
+      setSavedLocations(updated);
+      localStorage.setItem('savedLocations', JSON.stringify(updated));
+    }
+    setIsSaveModalOpen(false);
+  };
+
+  const removeSavedLocation = (address, e) => {
+    e.stopPropagation();
+    const updated = savedLocations.filter(s => s.address !== address);
     setSavedLocations(updated);
     localStorage.setItem('savedLocations', JSON.stringify(updated));
   };
   return (
-    <div className="w-full rounded-t-[32px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col min-h-[calc(100vh-120px)]">
+    <div className="w-full rounded-t-[32px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col min-h-[calc(100vh-120px)] relative overflow-hidden">
 
       {/* Header */}
 
-      <div className="flex items-center gap-3">
-
-        <button className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-
-          <ArrowLeft size={18} className="text-gray-700" />
-
+      <div className="flex items-center gap-4">
+        <button className="h-12 w-12 rounded-full bg-pink-50 flex items-center justify-center">
+          <ArrowLeft size={20} className="text-pink-500" />
         </button>
-
         <h1 className="text-xl font-bold text-gray-900">
           Safe Route
         </h1>
-
       </div>
 
       {/* Search Card */}
@@ -79,16 +108,15 @@ export default function SearchSheet({
 
         <div className="flex items-center gap-3">
 
-          <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center">
-
-            <Navigation size={15} color="white" />
-
+          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#00A15D]">
+            <ArrowUp size={16} strokeWidth={3} className="text-white" />
           </div>
 
           <input
-            value="128 Oak Street"
-            readOnly
-            className="w-full outline-none text-sm font-medium text-gray-900"
+            value={origin}
+            onChange={(e) => setOrigin(e.target.value)}
+            placeholder="Find you location..."
+            className="w-full outline-none text-sm font-medium text-gray-900 bg-transparent"
           />
 
         </div>
@@ -97,12 +125,11 @@ export default function SearchSheet({
 
         {/* Destination */}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-5">
 
-          <MapPin
-            size={20}
-            className="text-gray-700"
-          />
+          <div className="flex flex-shrink-0 items-center justify-center">
+            <MapPin size={24} className="text-pink-500 fill-pink-500" strokeWidth={1} />
+          </div>
 
           <input
             value={destination}
@@ -117,17 +144,29 @@ export default function SearchSheet({
 
       {/* Quick Destination */}
 
-      <div className="mt-4 flex gap-2 overflow-x-auto">
+      <div className="mt-4 flex gap-2 overflow-x-auto no-scrollbar pb-2">
 
-        {savedLocations.map((item) => (
+        {savedLocations.map((item, idx) => (
           <button
-            key={item}
-            onClick={() => setDestination(item)}
-            className="whitespace-nowrap rounded-full border border-gray-300 px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+            key={idx}
+            onClick={() => setDestination(item.address)}
+            className="whitespace-nowrap rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
           >
-            {item}
+            <Bookmark size={14} className="text-gray-500 fill-gray-500" />
+            {item.name}
           </button>
         ))}
+        {savedLocations.length > 0 && (
+          <div className="pl-1 flex items-center">
+            <div className="h-6 w-px bg-gray-200 mx-1"></div>
+            <button
+              onClick={() => setIsManagingSaved(true)}
+              className="flex items-center justify-center h-9 w-9 rounded-full border border-gray-200 hover:bg-gray-50 flex-shrink-0 ml-1"
+            >
+              <ChevronRight size={16} className="text-gray-500" />
+            </button>
+          </div>
+        )}
 
       </div>
 
@@ -143,21 +182,22 @@ export default function SearchSheet({
             <button
               key={item}
               onClick={() => setDestination(item)}
-              className="flex w-full items-start gap-4 text-left group"
+              className="flex w-full items-center gap-4 text-left group border-b border-dashed border-gray-100 pb-4 mb-4 last:border-0 last:mb-0"
             >
-              <div className="mt-1">
-                <Clock3 size={18} className="text-gray-400" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 flex-shrink-0">
+                <Clock3 size={14} className="text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{item}</h3>
+                <h3 className="font-semibold text-gray-900 text-sm">{item.split(',')[0]}</h3>
+                <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{item}</p>
               </div>
               
-              <div className="flex items-center gap-2">
-                {!savedLocations.includes(item) && (
+              <div className="flex items-center gap-3">
+                {!savedLocations.some(s => s.address === item) && (
                   <Bookmark
                     size={16}
-                    className="text-gray-400 hover:text-indigo-600 transition"
-                    onClick={(e) => saveToSavedLocations(item, e)}
+                    className="text-gray-300 hover:text-indigo-600 transition"
+                    onClick={(e) => handleOpenSaveModal(item, e)}
                   />
                 )}
                 <X
@@ -175,13 +215,108 @@ export default function SearchSheet({
 
       <button
         onClick={handleContinueClick}
-        disabled={!destination}
+        disabled={!destination || !origin}
         className="mt-auto w-full rounded-full bg-gray-900 py-4 font-semibold text-white disabled:bg-gray-300"
       >
-
         Continue
-
       </button>
+
+      {/* Manage Saved Locations Modal */}
+      {isManagingSaved && (
+        <div className="absolute inset-0 z-50 flex flex-col bg-white rounded-t-[32px] p-8 h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Manage Saved Locations</h2>
+            <button onClick={() => setIsManagingSaved(false)} className="p-2 rounded-full hover:bg-gray-100 transition">
+              <X size={20} className="text-gray-700" />
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-3 overflow-y-auto">
+            {savedLocations.length === 0 ? (
+              <p className="text-sm text-gray-500 italic">No saved locations</p>
+            ) : (
+              savedLocations.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <div>
+                    <span className="font-semibold text-gray-900 block">{item.name}</span>
+                    {item.name !== item.address && <span className="text-xs text-gray-500">{item.address}</span>}
+                  </div>
+                  <button
+                    onClick={(e) => removeSavedLocation(item.address, e)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-full transition"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Save Location Modal */}
+      {isSaveModalOpen && locationToSave && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center">
+          <div className="w-full sm:w-[400px] bg-white rounded-t-3xl sm:rounded-3xl p-6 shadow-xl animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:fade-in-0 duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Tambah alamat</h2>
+              <button onClick={() => setIsSaveModalOpen(false)} className="rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <X size={18} className="text-gray-600" />
+              </button>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-2xl bg-gray-50 p-4 border border-gray-100 mb-6">
+              <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-green-100">
+                <MapPin size={16} className="text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 line-clamp-1">{locationToSave}</h3>
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{locationToSave}</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-700 mb-3 font-medium">Simpan sebagai:</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setSaveAsCategory("Rumah"); setCustomName(""); }}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
+                    saveAsCategory === "Rumah" ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  🏠 Rumah
+                </button>
+                <button
+                  onClick={() => setSaveAsCategory("Lainnya")}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
+                    saveAsCategory === "Lainnya" ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  🔖 Buat nama
+                </button>
+              </div>
+              
+              {saveAsCategory === "Lainnya" && (
+                <input
+                  type="text"
+                  placeholder="Misal: Kantor"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  className="mt-4 w-full rounded-xl border border-gray-300 p-3 text-sm outline-none focus:border-gray-900"
+                />
+              )}
+            </div>
+
+            <button
+              onClick={confirmSaveLocation}
+              disabled={saveAsCategory === "Lainnya" && !customName.trim()}
+              className="w-full rounded-full bg-gray-900 py-3.5 text-sm font-bold text-white transition hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              Simpan
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
