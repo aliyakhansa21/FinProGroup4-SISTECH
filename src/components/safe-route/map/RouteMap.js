@@ -8,17 +8,17 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-export default function RouteMap({ route, height = "420px" }) {
-  const startPoint = [41.8781, -87.6298];
+export default function RouteMap({ route, startCoords, endCoords, height = "420px" }) {
+  const startPoint = startCoords || [41.8781, -87.6298];
 
-  const routeCoordinates = route?.coordinates || [
+  const routeCoordinates = route?.coordinates || (startCoords && endCoords ? [startCoords, endCoords] : [
     [41.8781, -87.6298],
     [41.8815, -87.625],
     [41.8845, -87.618],
     [41.889, -87.614],
-  ];
+  ]);
 
-  const endPoint = routeCoordinates[routeCoordinates.length - 1];
+  const endPoint = endCoords || routeCoordinates[routeCoordinates.length - 1];
 
   const getRouteColor = (risk) => {
     if (!risk) return "#111827";
@@ -29,7 +29,6 @@ export default function RouteMap({ route, height = "420px" }) {
 
   return (
     <div
-      // Hapus style height 420px, ganti jadi h-full w-full. Hapus juga rounded-2xl dan border
       className="relative z-0 h-full w-full overflow-hidden bg-gray-200"
     >
       <MapContainer

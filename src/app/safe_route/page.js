@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import SearchSheet from "@/components/safe-route/sheets/SearchSheet";
 import SafeRouteLayout from "@/components/safe-route/SafeRouteLayout";
 import dynamic from "next/dynamic";
@@ -25,6 +26,7 @@ const mockRoutes = [
 ];
 
 export default function SafeRoutePage() {
+  const router = useRouter();
   const [destination, setDestination] = useState("");
   const [step, setStep] = useState(1);
   const [selectedRoute, setSelectedRoute] = useState(null);
@@ -95,7 +97,7 @@ export default function SafeRoutePage() {
           floatingActions={
             <FloatingActions 
               showSOS={step === 3 || step === 4} 
-              onSOS={() => console.log("SOS TRIGGERED!")} 
+              onSOS={() => router.push("/sos")} 
             />
           }
         >
