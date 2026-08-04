@@ -88,29 +88,39 @@ export default function EmergencySheet({
             ))}
 
             {isAddingContact && (
-              <div className="mt-2 flex flex-col gap-3 rounded-2xl border border-pink-100 bg-pink-50/50 p-4">
-                <input
-                  type="text"
-                  placeholder="Nama Kontak (mis: Ibu)"
-                  value={newContact.name}
-                  onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
-                  className="w-full rounded-xl border border-gray-200 p-2.5 text-xs outline-none focus:border-pink-500 bg-white"
-                />
-                <input
-                  type="tel"
-                  placeholder="Nomor Telepon (mis: +628...)"
-                  value={newContact.phone}
-                  onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                  className="w-full rounded-xl border border-gray-200 p-2.5 text-xs outline-none focus:border-pink-500 bg-white"
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveNewContact}
-                  disabled={!newContact.name || !newContact.phone}
-                  className="w-full rounded-xl bg-pink-500 py-2.5 text-xs font-bold text-white transition hover:bg-pink-600 disabled:bg-pink-300"
-                >
-                  Simpan Kontak
-                </button>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-white p-6 shadow-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-bold text-gray-900">Tambah Kontak Darurat</h3>
+                    <button type="button" onClick={() => setIsAddingContact(false)} className="text-gray-400 hover:text-gray-600 transition">✕</button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Nama Kontak (mis: Ibu)"
+                    value={newContact.name}
+                    onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 p-3 text-xs outline-none focus:border-pink-500 bg-gray-50/50"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Nomor Telepon (08...)"
+                    value={newContact.phone}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      if (val.length <= 15) setNewContact({ ...newContact, phone: val });
+                    }}
+                    className="w-full rounded-xl border border-gray-200 p-3 text-xs outline-none focus:border-pink-500 bg-gray-50/50"
+                  />
+                  <p className="text-[10px] text-gray-400 -mt-2">Minimal 10 digit, maksimal 15 digit angka.</p>
+                  <button
+                    type="button"
+                    onClick={handleSaveNewContact}
+                    disabled={!newContact.name.trim() || newContact.phone.length < 10}
+                    className="w-full mt-2 rounded-xl bg-pink-500 py-3 text-xs font-bold text-white transition hover:bg-pink-600 disabled:bg-pink-300 disabled:cursor-not-allowed"
+                  >
+                    Simpan Kontak
+                  </button>
+                </div>
               </div>
             )}
           </div>

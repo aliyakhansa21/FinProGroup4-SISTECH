@@ -2,7 +2,7 @@
 
 export default function ArrivalSheet({ duration, distance, onBackHome, onSafe }) {
   return (
-    <section className="flex w-full flex-col items-center rounded-t-[34px] bg-white px-6 pb-10 pt-4 shadow-[0_-12px_40px_rgba(0,0,0,0.12)]">
+    <section className="flex w-full max-h-[85vh] overflow-y-auto flex-col items-center rounded-t-[34px] bg-white px-6 pb-10 pt-4 shadow-[0_-12px_40px_rgba(0,0,0,0.12)]">
       <div className="mb-6 flex shrink-0 justify-center">
         <div className="h-1.5 w-12 rounded-full bg-gray-300" />
       </div>

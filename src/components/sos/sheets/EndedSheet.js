@@ -8,7 +8,7 @@ export default function EndedSheet() {
   return (
     <div className="flex flex-col items-center justify-center max-w-lg mx-auto w-full gap-6 py-4">
       <div className="flex flex-col items-center text-center">
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-pink-100/70 text-5xl mb-4 animate-bounce">
+        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-pink-100/70 text-5xl mb-4">
           ☁️
         </div>
         <h2 className="text-xl md:text-2xl font-black text-gray-900">

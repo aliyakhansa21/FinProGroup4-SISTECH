@@ -115,7 +115,7 @@ export default function SafeRoutePage() {
             <NavigationSheet 
               duration="18 min"
               distance="1.4 km"
-              onShare={() => setModalState("share")}
+              onShare={() => alert("Membuka Sharelock (WIP)")}
               onEnd={() => setModalState("end")}
             />
           )}
@@ -125,7 +125,7 @@ export default function SafeRoutePage() {
               duration="18 min"
               distance="1.4 km"
               onBackHome={handleEndNavigation}
-              onSafe={() => console.log("User confirmed safe status")}
+              onSafe={handleEndNavigation}
             />
           )}
         </SafeRouteLayout>
