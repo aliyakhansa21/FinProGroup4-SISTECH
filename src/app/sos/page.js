@@ -39,7 +39,12 @@ export default function SOSPage() {
   const [newContact, setNewContact] = useState({ name: "", phone: "" });
 
   const messageInputRef = useRef(null);
+  const emergencyNoteRef = useRef(emergencyNote);
   const [contacts, setContacts] = useState(DEFAULT_CONTACTS);
+
+  useEffect(() => {
+    emergencyNoteRef.current = emergencyNote;
+  }, [emergencyNote]);
 
   // Nearby Safe Places Data
   const nearbyPlaces = [
@@ -114,7 +119,7 @@ export default function SOSPage() {
     const sendWA = (lat, lng) => {
       const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
       const defaultMsg = "Hi, ini darurat! Saya mengaktifkan SOS dan mungkin butuh bantuan.";
-      const textToSend = `${emergencyNote || defaultMsg}\n\n📍 GPS Location:\n${mapsUrl}`;
+      const textToSend = `${emergencyNoteRef.current || defaultMsg}\n\n📍 GPS Location:\n${mapsUrl}`;
 
       const selectedContacts = contacts.filter((c) => c.selected);
       const firstPhone = selectedContacts.length > 0 ? selectedContacts[0].phone.replace(/[^0-9]/g, "") : "";

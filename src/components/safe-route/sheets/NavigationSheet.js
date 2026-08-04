@@ -8,7 +8,7 @@ export default function NavigationSheet({
   onEnd,
 }) {
   return (
-    <section className="flex w-full flex-col rounded-t-[34px] bg-white shadow-[0_-12px_40px_rgba(0,0,0,0.12)]">
+    <section className="flex w-full max-h-[85vh] overflow-y-auto flex-col rounded-t-[34px] bg-white shadow-[0_-12px_40px_rgba(0,0,0,0.12)]">
       <div className="flex shrink-0 justify-center pt-3">
         <div className="h-1.5 w-12 rounded-full bg-gray-300" />
       </div>

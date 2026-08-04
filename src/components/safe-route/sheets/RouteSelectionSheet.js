@@ -15,7 +15,7 @@ export default function RouteSelectionSheet({
   const [activeTab, setActiveTab] = useState(tabs[0]);
 
   return (
-    <section className="flex w-full max-h-[65vh] flex-col rounded-t-[34px] bg-white shadow-[0_-12px_40px_rgba(0,0,0,0.12)]">
+    <section className="flex w-full max-h-[85vh] overflow-y-auto flex-col rounded-t-[34px] bg-white shadow-[0_-12px_40px_rgba(0,0,0,0.12)]">
 
       {/* Drag Handle */}
       <div className="flex shrink-0 justify-center pt-3">

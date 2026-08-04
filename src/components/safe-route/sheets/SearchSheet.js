@@ -11,12 +11,14 @@ import {
   ArrowUp,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SearchSheet({
   destination,
   setDestination,
   onContinue,
 }) {
+  const router = useRouter();
   const [recentSearches, setRecentSearches] = useState([]);
   const [savedLocations, setSavedLocations] = useState([]);
   const [origin, setOrigin] = useState("Lokasi kamu sekarang");
@@ -87,12 +89,12 @@ export default function SearchSheet({
     localStorage.setItem('savedLocations', JSON.stringify(updated));
   };
   return (
-    <div className="w-full rounded-t-[32px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col min-h-[calc(100vh-120px)] relative overflow-hidden">
+    <div className="w-full rounded-t-[32px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col max-h-[85vh] overflow-y-auto relative">
 
       {/* Header */}
 
       <div className="flex items-center gap-4">
-        <button className="h-12 w-12 rounded-full bg-pink-50 flex items-center justify-center">
+        <button onClick={() => router.push('/')} className="h-12 w-12 rounded-full bg-pink-50 flex items-center justify-center hover:bg-pink-100 transition">
           <ArrowLeft size={20} className="text-pink-500" />
         </button>
         <h1 className="text-xl font-bold text-gray-900">
@@ -173,7 +175,6 @@ export default function SearchSheet({
       {/* Recent */}
 
       <div className="mt-8 space-y-5 mb-8">
-        <h2 className="font-semibold text-gray-900 mb-2">Recent Searches</h2>
         
         {recentSearches.length === 0 ? (
           <p className="text-sm text-gray-500 italic">No Recent Location</p>
