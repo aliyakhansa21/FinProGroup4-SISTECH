@@ -5,24 +5,82 @@ import { useRouter } from "next/navigation";
 import { useSOS } from "@/components/sos/hooks/useSOS";
 import SOSButton from "@/components/sos/ui/SOSButton";
 import { playSirenSound, stopSirenSound } from "@/lib/sirenAudio";
+import { getStoredContacts, saveStoredContacts } from "@/lib/storage";
 
-const DEFAULT_EMERGENCY_MSG = "Hi, ini darurat! Saya mengaktifkan SOS dan mungkin butuh bantuan. Pantau lokasi saya di sini.";
+const DEFAULT_CONTACTS = [
+  { id: "1", name: "Jesse R.", phone: "+6281234567890", avatar: "JR", selected: true, status: "Sending..." },
+  { id: "2", name: "Dad", phone: "+6281298765432", avatar: "D", selected: true, status: "Sending..." },
+  { id: "3", name: "Maya R.", phone: "+6281311223344", avatar: "MR", selected: true, status: "Sending..." },
+];
 
 export default function SOSPage() {
   const router = useRouter();
   const {
     step,
+    setStep,
     holdProgress,
-    session,
     emergencyNote,
     setEmergencyNote,
     startHold,
     cancelHold,
     completeSOS,
-    reShare,
   } = useSOS();
 
-  // 1. Trigger audio sirine berdasarkan step
+  const [shareLiveLocation, setShareLiveLocation] = useState(true);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isWaClicked, setIsWaClicked] = useState(false);
+
+  // Form Tambah Kontak
+  const [isAddingContact, setIsAddingContact] = useState(false);
+  const [newContact, setNewContact] = useState({ name: "", phone: "" });
+
+  const messageInputRef = useRef(null);
+  const [contacts, setContacts] = useState(DEFAULT_CONTACTS);
+
+  useEffect(() => {
+    const initial = getStoredContacts(DEFAULT_CONTACTS);
+    setContacts(initial);
+  }, []);
+
+  const updateContactsState = (newContactsList) => {
+    setContacts(newContactsList);
+    saveStoredContacts(newContactsList);
+  };
+
+  const toggleContact = (id) => {
+    if (!shareLiveLocation) return;
+    const updated = contacts.map((c) =>
+      c.id === id ? { ...c, selected: !c.selected } : c
+    );
+    updateContactsState(updated);
+  };
+
+  const handleSaveNewContact = () => {
+    if (newContact.name.trim() && newContact.phone.trim()) {
+      const updated = [
+        ...contacts,
+        {
+          id: Date.now().toString(),
+          name: newContact.name.trim(),
+          phone: newContact.phone.trim(),
+          avatar: newContact.name.trim().substring(0, 2).toUpperCase(),
+          selected: true,
+          status: "Sending...",
+        },
+      ];
+      updateContactsState(updated);
+      setNewContact({ name: "", phone: "" });
+      setIsAddingContact(false);
+    }
+  };
+
+  const nearbyPlaces = [
+    { id: "p1", name: "Police Station", distance: "300 m", icon: "🚓", lat: -6.2088, lng: 106.8456 },
+    { id: "p2", name: "Hospital", distance: "450 m", icon: "🏥", lat: -6.2095, lng: 106.8462 },
+    { id: "p3", name: "24 Hour Store", distance: "120 m", icon: "🏪", lat: -6.2081, lng: 106.8449 },
+  ];
+
+  // Control Sirine Audio
   useEffect(() => {
     if (step === "sending" || step === "shared") {
       playSirenSound();
@@ -32,99 +90,56 @@ export default function SOSPage() {
     return () => stopSirenSound();
   }, [step]);
 
-  // Set default message jika emergencyNote masih kosong saat render pertama
+  // Reset state ini kalau SOS di-cancel / di-reset
   useEffect(() => {
-    if (!emergencyNote) {
-      setEmergencyNote(DEFAULT_EMERGENCY_MSG);
+    if (step === "idle") {
+      setIsWaClicked(false);
     }
-  }, []);
-
-  const [shareLiveLocation, setShareLiveLocation] = useState(true);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-
-  // Form Tambah Kontak
-  const [isAddingContact, setIsAddingContact] = useState(false);
-  const [newContact, setNewContact] = useState({ name: "", phone: "" });
-
-  // Ref Textarea Pesan
-  const messageInputRef = useRef(null);
-
-  // Initial Contacts Data
-  const [contacts, setContacts] = useState([
-    { id: "1", name: "Jesse R.", phone: "+1 (555) 050-6060", avatar: "JR", selected: true, status: "Notified" },
-    { id: "2", name: "Dad", phone: "+1 (555) 030-4040", avatar: "D", selected: true, status: "Notified" },
-    { id: "3", name: "Maya R.", phone: "+1 (555) 010-2020", avatar: "MR", selected: true, status: "Notified" },
-  ]);
-
-  // Nearby Safe Places Data
-  const nearbyPlaces = [
-    { id: "p1", name: "Police Station", distance: "300 m", icon: "🚓" },
-    { id: "p2", name: "Hospital", distance: "450 m", icon: "🏥" },
-    { id: "p3", name: "24 Hour Store", distance: "120 m", icon: "🏪" },
-  ];
-
-  const toggleContact = (id) => {
-    setContacts((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, selected: !c.selected } : c))
-    );
-  };
-
-  const handleSaveNewContact = () => {
-    if (newContact.name.trim() && newContact.phone.trim()) {
-      setContacts((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          name: newContact.name,
-          phone: newContact.phone,
-          avatar: newContact.name.substring(0, 2).toUpperCase(),
-          selected: true,
-          status: "Notified",
-        },
-      ]);
-      setNewContact({ name: "", phone: "" });
-      setIsAddingContact(false);
-    }
-  };
-
-  // Countdown timer untuk Screen 2
-  const [countdown, setCountdown] = useState(3);
-  useEffect(() => {
-    let timer;
-    if (step === "sending" && countdown > 0) {
-      timer = setInterval(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [step, countdown]);
-
-  // Timer Durasi Berbagi Lokasi untuk Screen 3
-  const [secondsActive, setSecondsActive] = useState(5456);
-  useEffect(() => {
-    let interval;
-    if (step === "shared") {
-      interval = setInterval(() => {
-        setSecondsActive((prev) => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
   }, [step]);
 
-  const formatTimer = (totalSeconds) => {
-    const hrs = Math.floor(totalSeconds / 3600);
-    const mins = Math.floor((totalSeconds % 3600) / 60);
-    const secs = totalSeconds % 60;
-    return `${hrs}:${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  // JIKA SHARE LOCATION UNCHECKED -> BYPASS LANGSUNG KE SCREEN 3
+  useEffect(() => {
+    if (step === "sending" && !shareLiveLocation) {
+      setStep("shared");
+    }
+  }, [step, shareLiveLocation, setStep]);
+
+  // FUNGSI BUKA WHATSAPP DENGAN IZIN LOKASI ASLI
+  const handleOpenWhatsApp = () => {
+    setIsWaClicked(true); // <--- Tandai bahwa WA sudah diklik!
+
+    const sendWA = (lat, lng) => {
+      const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+      const defaultMsg = "Hi, ini darurat! Saya mengaktifkan SOS dan mungkin butuh bantuan.";
+      const textToSend = `${emergencyNote || defaultMsg}\n\n📍 GPS Location:\n${mapsUrl}`;
+
+      const selectedContacts = contacts.filter((c) => c.selected);
+      const firstPhone = selectedContacts.length > 0 ? selectedContacts[0].phone.replace(/[^0-9]/g, "") : "";
+
+      if (firstPhone) {
+        window.open(`https://wa.me/${firstPhone}?text=${encodeURIComponent(textToSend)}`, "_blank");
+      }
+    };
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          sendWA(position.coords.latitude, position.coords.longitude);
+        },
+        () => {
+          sendWA(-6.2088, 106.8456); // Fallback lokasi jika izin ditolak
+        }
+      );
+    } else {
+      sendWA(-6.2088, 106.8456);
+    }
   };
 
-  const formatSummaryDuration = (totalSeconds) => {
-    const hrs = Math.floor(totalSeconds / 3600);
-    const mins = Math.floor((totalSeconds % 3600) / 60);
-    if (hrs > 0) {
-      return `${hrs} hr ${mins} mins`;
-    }
-    return `${mins} mins`;
+  const handleFinishSending = () => {
+    setContacts((prev) =>
+      prev.map((c) => ({ ...c, status: "Notified" }))
+    );
+    setStep("shared");
   };
 
   const handleConfirmCancel = () => {
@@ -153,7 +168,6 @@ export default function SOSPage() {
         {(step === "idle" || step === "holding") && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             
-            {/* Kolom Kiri: Hero SOS Button */}
             <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-100 rounded-3xl p-6 md:p-10 shadow-sm h-full">
               <SOSButton
                 onStartHold={startHold}
@@ -165,30 +179,26 @@ export default function SOSPage() {
                 Tap and hold to send SOS
               </h2>
               <p className="text-xs text-gray-500 mt-1 max-w-xs">
-                Alerts your trusted circle & shares live location.
+                Alerts your trusted circle & activates local siren.
               </p>
             </div>
 
-            {/* Kolom Kanan: Settings Cards */}
             <div className="flex flex-col gap-5">
-              
-              {/* Card 1: Trusted Contacts */}
               <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-dashed border-gray-100 pb-3">
                   <h3 className="text-sm font-bold text-gray-900">Trusted contacts</h3>
                   <button
                     type="button"
                     onClick={() => setIsAddingContact(!isAddingContact)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700"
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700 hover:bg-amber-200 transition"
                   >
                     {isAddingContact ? "✕" : "✏️"}
                   </button>
                 </div>
 
-                {/* Toggle Share Live Location */}
                 <div className="flex items-center justify-between rounded-2xl bg-pink-50/60 p-3">
                   <span className="text-xs font-medium text-gray-700 leading-snug">
-                     Share Emergency Location to Trusted Contacts?
+                    Share Emergency Location to Trusted Contacts?
                   </span>
                   <input
                     type="checkbox"
@@ -198,8 +208,7 @@ export default function SOSPage() {
                   />
                 </div>
 
-                {/* Contact List */}
-                <div className={`flex flex-col gap-2 transition-opacity ${!shareLiveLocation ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
+                <div className={`flex flex-col gap-2 max-h-60 overflow-y-auto pr-1 transition-opacity ${!shareLiveLocation ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
                   {contacts.map((contact) => (
                     <div
                       key={contact.id}
@@ -221,7 +230,6 @@ export default function SOSPage() {
                     </div>
                   ))}
 
-                  {/* Form Tambah Kontak Baru */}
                   {isAddingContact && (
                     <div className="mt-2 flex flex-col gap-3 rounded-2xl border border-pink-100 bg-pink-50/50 p-4">
                       <input
@@ -233,7 +241,7 @@ export default function SOSPage() {
                       />
                       <input
                         type="tel"
-                        placeholder="Nomor Telepon (mis: +62...)"
+                        placeholder="Nomor Telepon (mis: +628...)"
                         value={newContact.phone}
                         onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
                         className="w-full rounded-xl border border-gray-200 p-2.5 text-xs outline-none focus:border-pink-500 bg-white"
@@ -251,7 +259,6 @@ export default function SOSPage() {
                 </div>
               </div>
 
-              {/* Card 2: Emergency Message Preview */}
               <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-3">
                 <div className="flex items-center justify-between border-b border-dashed border-gray-100 pb-3">
                   <div className="flex items-center gap-2">
@@ -262,7 +269,6 @@ export default function SOSPage() {
                     type="button"
                     onClick={() => messageInputRef.current?.focus()}
                     className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700 hover:bg-amber-200 transition"
-                    title="Edit Pesan"
                   >
                     ✏️
                   </button>
@@ -273,7 +279,7 @@ export default function SOSPage() {
                   rows={3}
                   value={emergencyNote}
                   onChange={(e) => setEmergencyNote(e.target.value)}
-                  placeholder={DEFAULT_EMERGENCY_MSG}
+                  placeholder="Hi, ini darurat! Saya mengaktifkan SOS dan mungkin butuh bantuan."
                   className="w-full resize-none rounded-2xl bg-pink-50/50 p-3 text-xs italic text-pink-900 leading-relaxed outline-none border border-transparent transition focus:border-pink-300 focus:bg-white"
                 />
               </div>
@@ -287,41 +293,44 @@ export default function SOSPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             
             <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-100 rounded-3xl p-6 md:p-10 shadow-sm h-full gap-4">
-              <div className="relative flex items-center justify-center my-2">
-                <svg className="w-44 h-44 -rotate-90 transform" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    className="stroke-gray-100"
-                    strokeWidth="8"
-                    fill="transparent"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    className="stroke-red-500 transition-all duration-1000 ease-linear"
-                    strokeWidth="8"
-                    strokeDasharray="251.2"
-                    strokeDashoffset={251.2 - (251.2 * countdown) / 3}
-                    strokeLinecap="round"
-                    fill="transparent"
-                  />
-                </svg>
-                <span className="absolute text-4xl font-black text-red-600">
-                  {countdown}
-                </span>
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100 text-red-600 text-4xl animate-ping">
+                🚨
               </div>
 
               <h2 className="text-base md:text-lg font-bold text-gray-900">
                 Sending Emergency Alert...
               </h2>
+              <p className="text-xs text-gray-400 max-w-xs">
+                Local siren is sounding. Send location to WhatsApp contact below.
+              </p>
+
+              {/* 1. TOMBOL OPEN WHATSAPP */}
+              <button
+                type="button"
+                onClick={handleOpenWhatsApp}
+                className="w-full max-w-xs rounded-2xl bg-green-500 py-3 text-xs font-bold text-white transition hover:bg-green-600 shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>💬</span> Open WhatsApp & Send GPS
+              </button>
+
+              {/* 2. TOMBOL CONTINUE (Hanya Aktif Jika WA Sudah Diklik) */}
+              <button
+                type="button"
+                disabled={!isWaClicked}
+                onClick={handleFinishSending}
+                className={`w-full max-w-xs rounded-2xl py-3 text-xs font-bold text-white transition shadow-sm ${
+                  isWaClicked
+                    ? "bg-pink-500 hover:bg-pink-600 cursor-pointer"
+                    : "bg-gray-300 cursor-not-allowed opacity-60"
+                }`}
+              >
+                {isWaClicked ? "Already Sent? Continue →" : "Click WhatsApp Button First ⬆️"}
+              </button>
 
               <button
                 type="button"
                 onClick={() => setShowCancelModal(true)}
-                className="mt-4 w-full max-w-xs rounded-2xl border border-pink-300 py-3 text-xs font-bold text-pink-600 transition hover:bg-pink-50"
+                className="w-full max-w-xs rounded-2xl border border-pink-300 py-2 text-xs font-bold text-pink-600 transition hover:bg-pink-50"
               >
                 Cancel SOS
               </button>
@@ -329,10 +338,10 @@ export default function SOSPage() {
 
             <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-4">
               <h3 className="text-sm font-bold text-gray-900 border-b border-dashed border-gray-100 pb-3">
-                Trusted contacts
+                Trusted contacts status
               </h3>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 max-h-60 overflow-y-auto pr-1">
                 {contacts.filter((c) => c.selected).map((contact) => (
                   <div
                     key={contact.id}
@@ -348,8 +357,8 @@ export default function SOSPage() {
                       </div>
                     </div>
 
-                    <span className="rounded-full bg-green-100 px-3 py-1 text-xxs font-bold text-green-700">
-                      Notified
+                    <span className={`rounded-full px-3 py-1 text-xxs font-bold ${contact.status === "Notified" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700 animate-pulse"}`}>
+                      {contact.status}
                     </span>
                   </div>
                 ))}
@@ -366,27 +375,27 @@ export default function SOSPage() {
             <div className="flex flex-col gap-5">
               <div className="flex flex-col items-center text-center bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-100 text-pink-500 text-3xl mb-3">
-                  ✓
+                  🚨
                 </div>
-                <h2 className="text-base font-bold text-gray-900 max-w-xs">
-                  Your trusted contacts have been notified.
-                </h2>
-                <p className="text-xs text-gray-400 mt-1 max-w-xs">
-                  We're sharing your live location until you tell us you're safe.
-                </p>
-              </div>
-
-              <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-3">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-gray-800">
-                    <span className="text-pink-500">📍</span> Sharing live location
-                  </div>
-                  <span className="text-xxs text-gray-400">Started 8:42 PM</span>
-                </div>
-
-                <div className="flex items-center justify-center rounded-2xl bg-pink-50/50 py-4 text-3xl md:text-4xl font-extrabold tracking-widest text-pink-500">
-                  {formatTimer(secondsActive)}
-                </div>
+                {shareLiveLocation ? (
+                  <>
+                    <h2 className="text-base font-bold text-gray-900 max-w-xs">
+                      Your trusted contacts have been notified.
+                    </h2>
+                    <p className="text-xs text-gray-400 mt-1 max-w-xs">
+                      Siren is active and emergency location has been transmitted.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-base font-bold text-gray-900 max-w-xs">
+                      Local Siren Active 🚨
+                    </h2>
+                    <p className="text-xs text-gray-400 mt-1 max-w-xs">
+                      Emergency mode is running locally to attract attention.
+                    </p>
+                  </>
+                )}
               </div>
 
               <button
@@ -402,12 +411,9 @@ export default function SOSPage() {
               <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-3">
                 <div className="flex items-center justify-between border-b border-dashed border-gray-100 pb-3">
                   <h3 className="text-sm font-bold text-gray-900">Trusted contacts</h3>
-                  <button type="button" className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700">
-                    ✏️
-                  </button>
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
                   {contacts.map((contact) => (
                     <div
                       key={contact.id}
@@ -424,11 +430,13 @@ export default function SOSPage() {
                       </div>
 
                       <a
-                        href={`tel:${contact.phone}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-100 text-pink-600 transition hover:bg-pink-200 text-sm"
-                        title="Call Contact"
+                        href={`https://wa.me/${contact.phone.replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 text-green-600 transition hover:bg-green-200 text-sm"
+                        title="Call via WhatsApp"
                       >
-                        📞
+                        💬
                       </a>
                     </div>
                   ))}
@@ -454,12 +462,15 @@ export default function SOSPage() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-100 text-pink-600 transition hover:bg-pink-200 text-xs"
+                        title="Route in Google Maps"
                       >
                         📍
-                      </button>
+                      </a>
                     </div>
                   ))}
                 </div>
@@ -481,39 +492,8 @@ export default function SOSPage() {
                 Glad you're safe! 💗
               </h2>
               <p className="text-xs md:text-sm text-gray-500 mt-2 max-w-xs leading-relaxed">
-                Live location sharing has stopped and your trusted contacts have been notified that you're safe.
+                Local siren has been turned off and emergency mode ended.
               </p>
-            </div>
-
-            <div className="w-full rounded-3xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col gap-4">
-              <h3 className="text-sm font-bold text-gray-900 border-b border-dashed border-gray-100 pb-3">
-                Emergency Summary
-              </h3>
-
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3 text-xs text-gray-700">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink-50 text-pink-500">
-                    🕒
-                  </span>
-                  <span className="font-medium">{formatSummaryDuration(secondsActive)}</span>
-                </div>
-
-                <div className="flex items-center gap-3 text-xs text-gray-700">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink-50 text-pink-500">
-                    👥
-                  </span>
-                  <span className="font-medium">
-                    {contacts.filter((c) => c.selected).length} Trusted Contacts
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3 text-xs text-gray-700">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink-50 text-pink-500">
-                    📍
-                  </span>
-                  <span className="font-medium">Location sharing stopped</span>
-                </div>
-              </div>
             </div>
 
             <button
@@ -537,7 +517,7 @@ export default function SOSPage() {
             </div>
             <h3 className="text-base font-bold text-gray-900">Are you sure?</h3>
             <p className="text-xs text-gray-500 max-w-xs">
-              Ending Emergency Mode will stop location sharing.
+              Ending Emergency Mode will stop the siren and local alert.
             </p>
             <div className="flex w-full gap-3 mt-2">
               <button

@@ -17,7 +17,7 @@ export function playSirenSound() {
   const gainNode = audioCtx.createGain();
 
   oscillator.type = "sine";
-  gainNode.gain.value = 0.3; // Volume suara sirine
+  gainNode.gain.value = 0.3; // Volume sirine
 
   oscillator.connect(gainNode);
   gainNode.connect(audioCtx.destination);
@@ -25,7 +25,6 @@ export function playSirenSound() {
   let highPitch = false;
   oscillator.frequency.value = 600;
 
-  // Efek nada sirine naik-turun (600Hz - 1200Hz)
   sirenInterval = setInterval(() => {
     if (oscillator && audioCtx) {
       oscillator.frequency.setValueAtTime(
