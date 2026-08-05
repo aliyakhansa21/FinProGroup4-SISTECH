@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import SearchSheet from "@/components/safe-route/sheets/SearchSheet";
 import SafeRouteLayout from "@/components/safe-route/SafeRouteLayout";
 import dynamic from "next/dynamic";
@@ -27,8 +27,9 @@ const mockRoutes = [
 
 export default function SafeRoutePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [origin, setOrigin] = useState("128 Oak Street");
-  const [destination, setDestination] = useState("");
+  const [destination, setDestination] = useState(searchParams?.get("destination") || "");
   const [step, setStep] = useState(1);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [modalState, setModalState] = useState(null);
