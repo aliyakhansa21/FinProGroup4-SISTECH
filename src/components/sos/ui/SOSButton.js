@@ -1,6 +1,8 @@
 // src/components/sos/ui/SOSButton.js
 "use client";
 
+import Image from "next/image";
+
 export default function SOSButton({ onStartHold, onCancelHold, progress, isHolding }) {
   return (
     <div className="flex flex-col items-center gap-3 my-4">
@@ -32,7 +34,6 @@ export default function SOSButton({ onStartHold, onCancelHold, progress, isHoldi
         {/* Tombol SOS Lingkaran Merah */}
         <button
           type="button"
-          aria-label="Tekan dan tahan 3 detik untuk mengirim SOS Darurat"
           onPointerDown={onStartHold}
           onPointerUp={onCancelHold}
           onPointerLeave={onCancelHold}
@@ -40,16 +41,13 @@ export default function SOSButton({ onStartHold, onCancelHold, progress, isHoldi
             isHolding ? "animate-pulse" : ""
           }`}
         >
+          <Image src="/sos/sosIcon.svg" alt="SOS Icon" width={48} height={48} className="mb-1" />
           <span className="text-2xl font-black tracking-wider leading-none">SOS</span>
           <span className="mt-1 text-[10px] font-bold uppercase tracking-wider opacity-90">
-            TAHAN 3 DETIK
+            HOLD FOR 3 SEC
           </span>
         </button>
       </div>
-
-      <p className="text-center text-xs text-gray-400 max-w-xs">
-        {isHolding ? "Tetap tahan selama 3 detik..." : "Tekan dan tahan tombol di atas untuk mengirim peringatan darurat"}
-      </p>
     </div>
   );
 }
