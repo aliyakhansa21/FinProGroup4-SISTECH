@@ -8,7 +8,7 @@ const HeatmapView = dynamic(() => import("@/components/heatmap/HeatmapView"), { 
 
 export default function HeatmapPage() {
     return (
-        <div className="flex flex-col h-screen w-full relative bg-gray-100">
+        <div className="flex flex-col h-screen w-full relative">
         
             {/* Floating Header & Tombol Back */}
             <div className="absolute top-4 left-4 z-[500] bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-md border border-gray-100">

@@ -27,7 +27,7 @@ export default function PublicTrackingPage({ params }) {
   });
 
   return (
-    <main className="relative h-[100dvh] w-full bg-gray-100 flex flex-col md:flex-row overflow-hidden">
+    <main className="relative h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden">
       
       {/* BANNER DARURAT SOS (Jika Status SOS) */}
       {trackingData.status === "sos" && (

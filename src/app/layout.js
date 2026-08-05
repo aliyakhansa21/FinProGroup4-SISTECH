@@ -15,7 +15,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={plusJakartaSans.variable}>
-      <body className="font-sans antialiased text-gray-800 bg-gray-50">
+      <body className="font-sans antialiased text-gray-800 bg-[#fffbfb]">
         <MainLayout>{children}</MainLayout>
       </body>
     </html>

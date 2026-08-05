@@ -98,7 +98,7 @@ export default function ReportDashboardPage() {
     });
 
     return (
-        <div className="w-full bg-white min-h-screen pb-28 md:pb-12 relative -mt-6 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="w-full min-h-screen pb-28 md:pb-12 relative -mt-6 -mx-4 sm:-mx-6 lg:-mx-8">
             
             {/* App Bar */}
             <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md px-4 md:px-8 py-4 flex items-center justify-between gap-3 md:border-b md:border-gray-100 transition-all">
@@ -114,16 +114,7 @@ export default function ReportDashboardPage() {
                     <h1 className="text-xl font-bold text-gray-900">Report</h1>
                 </div>
 
-                {/* Navigasi Khusus Desktop */}
-                <div className="hidden md:flex items-center gap-8">
-                    <Link href="/" className="text-sm font-medium text-gray-500 hover:text-[#ED6690] transition-colors">Home</Link>
-                    <Link href="/route" className="text-sm font-medium text-gray-500 hover:text-[#ED6690] transition-colors">Route</Link>
-                    <Link href="/report" className="text-sm font-bold text-[#ED6690]">Report</Link>
-                    <Link href="/shareloc" className="text-sm font-medium text-gray-500 hover:text-[#ED6690] transition-colors">Shareloc</Link>
-                    <Link href="/sos" className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-red-600 transition-colors shadow-md shadow-red-500/20">
-                        <ShieldAlert className="w-4 h-4" /> SOS
-                    </Link>
-                </div>
+
             </div>
 
             {/* Hero banner */}
@@ -258,30 +249,6 @@ export default function ReportDashboardPage() {
 
             </div>
 
-            {/* Bottom Navigation (Khusus Mobile) */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-100 px-4 pt-2 pb-3 flex items-center justify-between z-30">
-                <NavItem icon={Home} label="Home" href="/" />
-                <NavItem icon={Footprints} label="Route" href="/route" />
-
-                <Link href="/sos" className="flex flex-col items-center -mt-6">
-                    <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-[0_6px_16px_-4px_rgba(239,68,68,0.6)] ring-4 ring-white">
-                        <ShieldAlert className="w-6 h-6 text-white" />
-                    </div>
-                    <span className="text-[11px] font-medium text-red-500 mt-1">SOS</span>
-                </Link>
-
-                <NavItem icon={FileText} label="Report" href="/report" active />
-                <NavItem icon={Share2} label="Shareloc" href="/shareloc" />
-            </nav>
         </div>
-    );
-}
-
-function NavItem({ icon: Icon, label, href, active }) {
-    return (
-        <Link href={href} className="flex flex-col items-center gap-1 px-2">
-            <Icon className={`w-5 h-5 ${active ? "text-[#ED6690]" : "text-gray-400"}`} strokeWidth={active ? 2.5 : 2} />
-            <span className={`text-[11px] font-medium ${active ? "text-[#ED6690]" : "text-gray-400"}`}>{label}</span>
-        </Link>
     );
 }

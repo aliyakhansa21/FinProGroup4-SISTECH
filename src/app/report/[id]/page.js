@@ -10,7 +10,7 @@ export default function CreateReportPage() {
     const [view, setView] = useState("form");
 
     return (
-        <div className="max-w-md md:max-w-3xl mx-auto bg-white min-h-screen relative overflow-hidden md:border-x md:border-gray-100 md:shadow-sm">
+        <div className="max-w-md md:max-w-3xl mx-auto min-h-screen relative overflow-hidden md:border-x md:border-gray-100 md:shadow-sm">
             
             {view === "form" && (
                 <>
