@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import SOSButton from "../ui/SOSButton";
 
 export default function EmergencySheet({
+  onBack,
   startHold,
   cancelHold,
   holdProgress,
@@ -21,25 +23,44 @@ export default function EmergencySheet({
   messageInputRef,
 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-      {/* Hero SOS Button */}
-      <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-100 rounded-3xl p-6 md:p-10 shadow-sm h-full">
-        <SOSButton
-          onStartHold={startHold}
-          onCancelHold={cancelHold}
-          progress={holdProgress}
-          isHolding={isHolding}
-        />
-        <h2 className="text-base md:text-lg font-bold text-gray-900 mt-2">
-          Tap and hold to send SOS
-        </h2>
-        <p className="text-xs text-gray-500 mt-1 max-w-xs">
-          Alerts your trusted circle & activates local siren.
-        </p>
+    <div className="flex flex-col gap-6 w-full pb-10">
+      
+      {/* Top Section - Full Width (Mosaic 2 Top) */}
+      <div className="w-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] md:shadow-sm md:border-x md:border-b md:border-t-0 md:border-gray-100 rounded-b-[20px] md:rounded-b-3xl md:rounded-t-none flex flex-col items-center justify-center px-5 pt-8 pb-10 md:py-12 relative z-10 gap-6">
+        
+        {/* Embedded Header Navigation */}
+        <div className="flex items-center gap-3 w-full max-w-sm md:max-w-none justify-start absolute top-4 md:top-8 left-4 md:left-8">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-100 text-pink-600 transition hover:bg-pink-200"
+            aria-label="Back"
+          >
+            <Image src="/back-button.svg" alt="Back" width={24} height={24} />
+          </button>
+          <h1 className="text-lg md:text-xl font-bold text-gray-900">Emergency SOS</h1>
+        </div>
+
+        {/* Hero SOS Button */}
+        <div className="flex flex-col items-center justify-center text-center mt-10 md:mt-12">
+          <SOSButton
+            onStartHold={startHold}
+            onCancelHold={cancelHold}
+            progress={holdProgress}
+            isHolding={isHolding}
+          />
+          <h2 className="text-base md:text-lg font-bold text-gray-900 mt-2">
+            Tap and hold to send SOS
+          </h2>
+          <p className="text-xs text-gray-500 mt-1 max-w-xs">
+            Alerts your trusted circle & activates local siren.
+          </p>
+        </div>
       </div>
 
-      {/* Settings Column */}
-      <div className="flex flex-col gap-5">
+      {/* Bottom Section - 2 Columns on Desktop (Mosaic 2 Bottom) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full px-4 sm:px-6 md:px-0">
+        
         {/* Trusted Contacts Card */}
         <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-4">
           <div className="flex items-center justify-between border-b border-dashed border-gray-100 pb-3">
@@ -47,9 +68,9 @@ export default function EmergencySheet({
             <button
               type="button"
               onClick={() => setIsAddingContact(!isAddingContact)}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700 hover:bg-amber-200 transition"
+              className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-[#fef3c7] hover:bg-amber-200 transition"
             >
-              {isAddingContact ? "✕" : "✏️"}
+              {isAddingContact ? <span className="text-amber-700 text-xs">✕</span> : <Image src="/sos/Edit Icon.svg" alt="Edit" width={16} height={16} />}
             </button>
           </div>
 
@@ -127,24 +148,24 @@ export default function EmergencySheet({
         </div>
 
         {/* Message Preview */}
-        <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-3">
+        <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-3 h-fit">
           <div className="flex items-center justify-between border-b border-dashed border-gray-100 pb-3">
             <div className="flex items-center gap-2">
-              <span className="text-pink-500">📍</span>
+              <Image src="/location.svg" alt="Location" width={20} height={20} />
               <h3 className="text-sm font-bold text-gray-900">Emergency message preview</h3>
             </div>
             <button
               type="button"
               onClick={() => messageInputRef.current?.focus()}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700 hover:bg-amber-200 transition"
+              className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-[#fef3c7] hover:bg-amber-200 transition"
             >
-              ✏️
+              <Image src="/sos/Edit Icon.svg" alt="Edit" width={16} height={16} />
             </button>
           </div>
 
           <textarea
             ref={messageInputRef}
-            rows={3}
+            rows={4}
             value={emergencyNote}
             onChange={(e) => setEmergencyNote(e.target.value)}
             placeholder="Hi, ini darurat! Saya mengaktifkan SOS dan mungkin butuh bantuan."

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSOS } from "@/components/sos/hooks/useSOS";
 import EmergencySheet from "@/components/sos/sheets/EmergencySheet";
@@ -156,25 +157,13 @@ export default function SOSPage() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-gray-50 p-4 md:p-8 flex justify-center items-start">
+    <main className="-mt-6 min-h-screen w-full bg-[#fffbfb] flex justify-center items-start">
       <div className="w-full max-w-md md:max-w-5xl flex flex-col gap-6">
         
-        {/* Header Navigation */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-100 text-pink-600 transition hover:bg-pink-200"
-            aria-label="Back"
-          >
-            ←
-          </button>
-          <h1 className="text-lg md:text-xl font-bold text-gray-900">Emergency SOS</h1>
-        </div>
-
         {/* SCREEN 1 */}
         {(step === "idle" || step === "holding") && (
           <EmergencySheet
+            onBack={() => router.back()}
             startHold={startHold}
             cancelHold={cancelHold}
             holdProgress={holdProgress}
@@ -197,6 +186,7 @@ export default function SOSPage() {
         {/* SCREEN 2 */}
         {step === "sending" && (
           <SendingSheet
+            onBack={() => router.back()}
             contacts={contacts}
             isWaClicked={isWaClicked}
             handleOpenWhatsApp={handleOpenWhatsApp}
@@ -208,6 +198,7 @@ export default function SOSPage() {
         {/* SCREEN 3 */}
         {step === "shared" && (
           <SentSheet
+            onBack={() => router.back()}
             shareLiveLocation={shareLiveLocation}
             contacts={contacts}
             nearbyPlaces={nearbyPlaces}
@@ -216,7 +207,16 @@ export default function SOSPage() {
         )}
 
         {/* SCREEN 4 */}
-        {step === "completed" && <EndedSheet />}
+        {step === "completed" && (
+          <EndedSheet
+            shareLiveLocation={shareLiveLocation}
+            contacts={contacts}
+            onBackHome={() => {
+              setStep("idle");
+              router.push("/");
+            }}
+          />
+        )}
 
       </div>
 
