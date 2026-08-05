@@ -27,6 +27,7 @@ const mockRoutes = [
 
 export default function SafeRoutePage() {
   const router = useRouter();
+  const [origin, setOrigin] = useState("128 Oak Street");
   const [destination, setDestination] = useState("");
   const [step, setStep] = useState(1);
   const [selectedRoute, setSelectedRoute] = useState(null);
@@ -59,8 +60,8 @@ export default function SafeRoutePage() {
       )}
 
       {step === 1 && (
-        <div className="-mx-4 -mb-6 flex min-h-[calc(100vh-80px)] flex-col justify-end sm:-mx-6 lg:-mx-8">
-          <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="-mx-4 -mt-6 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-6 flex flex-col bg-gray-50 min-h-screen">
+          <div className="w-full px-2 sm:px-6 lg:px-8">
             <SearchSheet
               destination={destination}
               setDestination={setDestination}
@@ -73,7 +74,7 @@ export default function SafeRoutePage() {
       {step >= 2 && (
         <SafeRouteLayout
           map={<RouteMap route={selectedRoute} />}
-        header={
+          header={
             step === 4 ? (
               <FloatingHeader
                 variant="arrived"
@@ -88,16 +89,20 @@ export default function SafeRoutePage() {
             ) : (
               <FloatingHeader
                 variant="navigation"
-                origin="128 Oak Street"
+                origin={origin}
                 destination={destination}
                 onBack={() => setStep(step - 1)}
+                onSwap={() => {
+                  setOrigin(destination || "Home");
+                  setDestination(origin);
+                }}
               />
             )
           }
           floatingActions={
-            <FloatingActions 
-              showSOS={step === 3 || step === 4} 
-              onSOS={() => router.push("/sos")} 
+            <FloatingActions
+              showSOS={step === 3 || step === 4}
+              onSOS={() => router.push("/sos")}
             />
           }
         >
@@ -112,7 +117,7 @@ export default function SafeRoutePage() {
           )}
 
           {step === 3 && (
-            <NavigationSheet 
+            <NavigationSheet
               duration="18 min"
               distance="1.4 km"
               onShare={() => alert("Membuka Sharelock (WIP)")}

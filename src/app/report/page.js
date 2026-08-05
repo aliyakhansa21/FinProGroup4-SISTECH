@@ -149,7 +149,7 @@ export default function ReportDashboardPage() {
 
                     <div className="relative w-32 h-28 md:w-48 md:h-44 shrink-0 -mr-2 md:mr-4">
                         <Image
-                            src="/report-dasboard.png"
+                            src="/report-maskot.png"
                             alt="Report Mascot"
                             fill
                             sizes="(max-width: 768px) 128px, 192px"
