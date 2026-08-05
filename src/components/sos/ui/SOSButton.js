@@ -1,5 +1,7 @@
-// src/components/sos/ui/SOSButton.js
 "use client";
+
+import Image from "next/image";
+import sosIcon from "@/assets/sos/sos-icon.svg";
 
 export default function SOSButton({ onStartHold, onCancelHold, progress, isHolding }) {
   return (
@@ -40,10 +42,8 @@ export default function SOSButton({ onStartHold, onCancelHold, progress, isHoldi
             isHolding ? "animate-pulse" : ""
           }`}
         >
+          <Image src={sosIcon} alt="SOS Icon" width={48} height={48} className="mb-1" />
           <span className="text-2xl font-black tracking-wider leading-none">SOS</span>
-          <span className="mt-1 text-[10px] font-bold uppercase tracking-wider opacity-90">
-            TAHAN 3 DETIK
-          </span>
         </button>
       </div>
 

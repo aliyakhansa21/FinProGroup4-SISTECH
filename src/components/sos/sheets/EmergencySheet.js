@@ -22,34 +22,28 @@ export default function EmergencySheet({
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-      {/* Hero SOS Button */}
-      <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-100 rounded-3xl p-6 md:p-10 shadow-sm h-full">
+      {/* Top Frame for SOS Button matching communityHeader */}
+      <div className="w-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] rounded-b-[20px] flex flex-col items-center justify-end px-5 pt-10 pb-5 md:pt-14 relative z-10 shrink-0">
         <SOSButton
           onStartHold={startHold}
           onCancelHold={cancelHold}
           progress={holdProgress}
           isHolding={isHolding}
         />
-        <h2 className="text-base md:text-lg font-bold text-gray-900 mt-2">
-          Tap and hold to send SOS
-        </h2>
-        <p className="text-xs text-gray-500 mt-1 max-w-xs">
-          Alerts your trusted circle & activates local siren.
-        </p>
       </div>
 
       {/* Settings Column */}
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5 px-4 sm:px-6 md:px-0 pb-10 w-full max-w-5xl mx-auto">
         {/* Trusted Contacts Card */}
         <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-4">
           <div className="flex items-center justify-between border-b border-dashed border-gray-100 pb-3">
             <h3 className="text-sm font-bold text-gray-900">Trusted contacts</h3>
             <button
               type="button"
-              onClick={() => setIsAddingContact(!isAddingContact)}
+              onClick={() => setIsAddingContact(true)}
               className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700 hover:bg-amber-200 transition"
             >
-              {isAddingContact ? "✕" : "✏️"}
+              ✏️
             </button>
           </div>
 
@@ -86,33 +80,6 @@ export default function EmergencySheet({
                 </div>
               </div>
             ))}
-
-            {isAddingContact && (
-              <div className="mt-2 flex flex-col gap-3 rounded-2xl border border-pink-100 bg-pink-50/50 p-4">
-                <input
-                  type="text"
-                  placeholder="Nama Kontak (mis: Ibu)"
-                  value={newContact.name}
-                  onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
-                  className="w-full rounded-xl border border-gray-200 p-2.5 text-xs outline-none focus:border-pink-500 bg-white"
-                />
-                <input
-                  type="tel"
-                  placeholder="Nomor Telepon (mis: +628...)"
-                  value={newContact.phone}
-                  onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                  className="w-full rounded-xl border border-gray-200 p-2.5 text-xs outline-none focus:border-pink-500 bg-white"
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveNewContact}
-                  disabled={!newContact.name || !newContact.phone}
-                  className="w-full rounded-xl bg-pink-500 py-2.5 text-xs font-bold text-white transition hover:bg-pink-600 disabled:bg-pink-300"
-                >
-                  Simpan Kontak
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -142,6 +109,60 @@ export default function EmergencySheet({
           />
         </div>
       </div>
+
+      {/* Add Contact Modal */}
+      {isAddingContact && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-bold text-gray-900">Tambah Kontak</h3>
+              <button 
+                onClick={() => setIsAddingContact(false)}
+                className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 mb-1 block">Nama Kontak</label>
+                <input
+                  type="text"
+                  placeholder="Misal: Ibu"
+                  value={newContact.name}
+                  onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                  className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 mb-1 block">Nomor Telepon</label>
+                <input
+                  type="tel"
+                  placeholder="Misal: 081234567890"
+                  value={newContact.phone}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    if (val.length <= 15) {
+                      setNewContact({ ...newContact, phone: val });
+                    }
+                  }}
+                  className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition bg-white"
+                />
+              </div>
+              
+              <button
+                type="button"
+                onClick={handleSaveNewContact}
+                disabled={!newContact.name || newContact.phone.length < 9}
+                className="w-full mt-2 rounded-xl bg-pink-500 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-pink-600 disabled:bg-gray-300 disabled:shadow-none disabled:cursor-not-allowed"
+              >
+                Simpan Kontak
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
