@@ -13,7 +13,7 @@ const HeatmapView = dynamic(() => import("@/components/heatmap/HeatmapView"), { 
 export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [savedLocations, setSavedLocations] = useState([]); 
+  const [savedLocations, setSavedLocations] = useState([]);
 
   useEffect(() => {
     const storedSaved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
@@ -28,10 +28,10 @@ export default function HomePage() {
 
   return (
     <div className="w-full min-h-[100dvh] pb-32 bg-[#fffbfb] flex flex-col">
-      
+
       {/* Top Map Area Container */}
       <div className="relative w-full h-[420px] md:h-[520px] bg-[#F5F5F9] shrink-0">
-        
+
         {/* Real Heatmap Background */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <HeatmapView activeFilter="All" isBackground={true} />
@@ -53,9 +53,9 @@ export default function HomePage() {
                 <Bell className="w-[18px] h-[18px] text-gray-500 fill-gray-500" />
                 <span className="absolute top-1 right-2 w-2 h-2 bg-[#f57fa0] rounded-full ring-2 ring-white"></span>
               </button>
-              <div className="w-10 h-10 rounded-full bg-indigo-100 overflow-hidden border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all">
+              <Link href="/profile" className="block w-10 h-10 rounded-full bg-indigo-100 overflow-hidden border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all">
                 <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Jane&backgroundColor=818cf8" className="w-full h-full object-cover" alt="Avatar" />
-              </div>
+              </Link>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function HomePage() {
               {/* Decorative circles */}
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-              
+
               <div className="flex items-center gap-4 mb-5 md:mb-6 relative z-10">
                 <Image src="/happylove-maskot.png" width={76} height={76} alt="Happy Cloud" className="w-[76px] h-[76px] md:w-[84px] md:h-[84px] object-contain drop-shadow-md shrink-0 -ml-1" />
                 <div>
@@ -79,8 +79,8 @@ export default function HomePage() {
               <div className="bg-white rounded-3xl p-3 md:p-4 relative z-10 shadow-inner">
                 <div className="flex items-center gap-3 px-3 md:px-4 py-3 bg-gray-50/80 rounded-2xl mb-3 hover:bg-gray-100 transition-colors border border-gray-100/50 focus-within:border-pink-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-pink-100">
                   <MapPin className="w-[18px] h-[18px] text-[#f57fa0]" />
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={handleSearchSubmit}
@@ -90,9 +90,9 @@ export default function HomePage() {
                   <Search className="w-[18px] h-[18px] md:w-5 md:h-5 text-gray-400 ml-auto shrink-0" />
                 </div>
                 <div className="flex items-center gap-2.5 md:gap-3 overflow-x-auto scrollbar-hide pb-0.5 px-1">
-                  {savedLocations.slice(0,5).map((place, idx) => (
-                    <button 
-                      key={idx} 
+                  {savedLocations.slice(0, 5).map((place, idx) => (
+                    <button
+                      key={idx}
                       onClick={() => router.push(`/safe_route?destination=${encodeURIComponent(place.address)}`)}
                       className="flex items-center gap-2 px-3.5 md:px-5 py-2 md:py-2.5 bg-white border border-gray-200 rounded-[12px] md:rounded-[14px] shadow-sm shrink-0 hover:border-pink-300 hover:bg-pink-50 hover:text-pink-600 transition-all group/btn"
                     >
@@ -110,7 +110,7 @@ export default function HomePage() {
 
       {/* Main Content Area (Stacked Layout) */}
       <div className="w-full max-w-4xl mx-auto px-4 md:px-8 mt-40 pb-10 flex flex-col gap-12">
-        
+
         {/* Area Safety */}
         <div>
           <div className="flex justify-between items-start mb-4 px-1">
