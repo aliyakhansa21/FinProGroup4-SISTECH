@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchSheet from "@/components/safe-route/sheets/SearchSheet";
 import SafeRouteLayout from "@/components/safe-route/SafeRouteLayout";
@@ -25,7 +25,7 @@ const mockRoutes = [
   { id: 4, name: "Scenic Route", duration: "25 min", distance: "2.0 km", safetyScore: 75, category: "Scenic", tags: ["Park path", "Quiet"] },
 ];
 
-export default function SafeRoutePage() {
+function SafeRouteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [origin, setOrigin] = useState("128 Oak Street");
@@ -160,5 +160,13 @@ export default function SafeRoutePage() {
         onCancel={() => setModalState(null)}
       />
     </>
+  );
+}
+
+export default function SafeRoutePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>}>
+      <SafeRouteContent />
+    </Suspense>
   );
 }
