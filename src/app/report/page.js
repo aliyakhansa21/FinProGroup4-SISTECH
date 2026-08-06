@@ -8,11 +8,6 @@ import {
     Ban,
     Lightbulb,
     TriangleAlert,
-    ShieldAlert,
-    Home,
-    Footprints,
-    FileText,
-    Share2,
 } from "lucide-react";
 
 const CATEGORY_CONFIG = {
@@ -23,34 +18,6 @@ const CATEGORY_CONFIG = {
 };
 
 const FILTERS = ["All", "Harassment", "Poor Lighting", "Unsafe Road"];
-
-// mock data
-const DEMO_REPORTS = [
-    {
-        id: "demo-1",
-        title: "Harassment reported",
-        category: "Harassment",
-        locationText: "Elm St & 4th Ave",
-        distance: "280 m away",
-        timeAgo: "12 min ago",
-    },
-    {
-        id: "demo-2",
-        title: "Poor lighting",
-        category: "Poor Lighting",
-        locationText: "Maple Ave & 5th St",
-        distance: "400 m away",
-        timeAgo: "1 hour ago",
-    },
-    {
-        id: "demo-3",
-        title: "Unsafe road",
-        category: "Unsafe Road",
-        locationText: "Pine St & 3rd Blvd",
-        distance: "280 m away",
-        timeAgo: "Yesterday",
-    },
-];
 
 const SAFETY_TIPS = [
     {
@@ -84,8 +51,11 @@ export default function ReportDashboardPage() {
                 locationText: r.locationText || "Unknown Location",
                 distance: "Near you",
                 timeAgo: "Just now",
+                // Menarik data prediksi MLOps
+                risk_score: r.risk_score || 0,
+                risk_category: r.risk_category || "Low",
             }));
-        setReports([...mapped, ...DEMO_REPORTS]);
+        setReports(mapped);
     }, []);
 
     const filteredReports = reports.filter((r) => {
@@ -96,6 +66,16 @@ export default function ReportDashboardPage() {
         const matchesQuery = safeTitle.toLowerCase().includes(safeQuery.toLowerCase());
         return matchesFilter && matchesQuery;
     });
+
+    const getRiskStyles = (category) => {
+        switch(category) {
+            case "Very High": return { border: "border-l-red-500", bg: "bg-red-50", text: "text-red-500", badge: "bg-red-100 text-red-700" };
+            case "High": return { border: "border-l-orange-500", bg: "bg-orange-50", text: "text-orange-500", badge: "bg-orange-100 text-orange-700" };
+            case "Medium": return { border: "border-l-yellow-400", bg: "bg-yellow-50", text: "text-yellow-600", badge: "bg-yellow-100 text-yellow-700" };
+            case "Low":
+            default: return { border: "border-l-green-400", bg: "bg-green-50", text: "text-green-500", badge: "bg-green-100 text-green-700" };
+        }
+    };
 
     return (
         <div className="w-full min-h-[calc(100vh-72px)] pb-28 md:pb-12 relative">
@@ -113,8 +93,6 @@ export default function ReportDashboardPage() {
                     </Link>
                     <h1 className="text-xl font-bold text-gray-900">Report</h1>
                 </div>
-
-
             </div>
 
             {/* Hero banner */}
@@ -202,17 +180,24 @@ export default function ReportDashboardPage() {
                         {filteredReports.map((report) => {
                             const config = CATEGORY_CONFIG[report.category] || CATEGORY_CONFIG.Other;
                             const Icon = config.icon;
+                            const styles = getRiskStyles(report.risk_category); // Menggunakan warna dinamis
+
                             return (
                                 <Link
                                     key={report.id}
                                     href={`/report/${report.id}`}
-                                    className="flex items-center gap-3 bg-white border border-gray-100 border-l-4 border-l-red-400 rounded-2xl px-4 md:px-5 py-3.5 md:py-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_14px_-4px_rgba(0,0,0,0.1)] transition-shadow"
+                                    className={`flex items-center gap-3 bg-white border border-gray-100 border-l-4 ${styles.border} rounded-2xl px-4 md:px-5 py-3.5 md:py-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_14px_-4px_rgba(0,0,0,0.1)] transition-shadow`}
                                 >
-                                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-                                        <Icon className="w-4 h-4 md:w-5 md:h-5 text-red-500" strokeWidth={2.5} />
+                                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full ${styles.bg} flex items-center justify-center shrink-0`}>
+                                        <Icon className={`w-4 h-4 md:w-5 md:h-5 ${styles.text}`} strokeWidth={2.5} />
                                     </div>
                                     <div className="flex-1 min-w-0 ml-1">
-                                        <p className="text-sm md:text-base font-semibold text-gray-900 truncate">{report.title}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-sm md:text-base font-semibold text-gray-900 truncate">{report.title}</p>
+                                            <span className={`text-[10px] md:text-xs px-2 py-0.5 rounded-full font-bold ${styles.badge}`}>
+                                                {report.risk_category}
+                                            </span>
+                                        </div>
                                         <p className="text-xs md:text-sm text-gray-400 truncate mt-0.5">{report.locationText}</p>
                                     </div>
                                     <div className="text-right shrink-0">
@@ -248,7 +233,6 @@ export default function ReportDashboardPage() {
                 </div>
 
             </div>
-
         </div>
     );
 }

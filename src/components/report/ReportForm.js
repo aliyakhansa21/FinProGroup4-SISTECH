@@ -22,32 +22,76 @@ export default function ReportForm({ onSubmitStart, onSubmitSuccess } = {}) {
 
     const isFormValid = incidentTitle !== "" && incidentType !== "" && location !== "";
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isFormValid) return;
 
         if (onSubmitStart) onSubmitStart();
 
+        // 1. Siapkan timestamp (Gunakan input user, atau fallback ke waktu saat ini)
+        let isoTimestamp = new Date().toISOString();
+        if (date && time) {
+            isoTimestamp = new Date(`${date}T${time}`).toISOString();
+        }
+
+        const lat = finalCoords ? finalCoords.lat : 41.8781;
+        const lng = finalCoords ? finalCoords.lng : -87.6298;
+        const locText = location || "Unknown Location";
+
+        // 2. Siapkan variabel default jika API gagal/error
+        let realRiskScore = 0;
+        let realRiskCategory = "Low";
+
+        // 3. Panggil API MLOps lokal
+        try {
+            const apiRes = await fetch('http://127.0.0.1:8000/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    latitude: lat,
+                    longitude: lng,
+                    location: locText,
+                    timestamp: isoTimestamp
+                }),
+            });
+
+            if (apiRes.ok) {
+                const resData = await apiRes.json();
+                // Mengambil data dari struktur JSON API
+                realRiskScore = resData.data.risk_score;
+                realRiskCategory = resData.data.risk_category;
+            } else {
+                console.error("API gagal merespons dengan status:", apiRes.status);
+            }
+        } catch (error) {
+            console.error("Gagal terhubung ke API MLOps (Pastikan Docker menyala):", error);
+        }
+
+        // 4. Susun data report menggunakan hasil prediksi yang asli
         const reportData = {
             id: `local-${Date.now()}`,
             title: incidentTitle,
             category: incidentType,
             description,
-            latitude: finalCoords ? finalCoords.lat : 41.8781,
-            longitude: finalCoords ? finalCoords.lng : -87.6298,
-            locationText: location,
+            latitude: lat,
+            longitude: lng,
+            locationText: locText,
             date,
             time,
             privacyMode,
-            risk_score: 95, 
-            risk_category: "Very High",
-            timestamp: new Date().toISOString(),
+            risk_score: realRiskScore,       // <-- Menggunakan data dinamis dari API
+            risk_category: realRiskCategory, // <-- Menggunakan data dinamis dari API
+            timestamp: isoTimestamp,
         };
 
+        // 5. Simpan ke LocalStorage
         const existingReports = JSON.parse(localStorage.getItem("localReports") || "[]");
         existingReports.push(reportData);
         localStorage.setItem("localReports", JSON.stringify(existingReports));
 
+        // 6. Transisi UI ke halaman sukses
         setTimeout(() => {
             if (onSubmitSuccess) {
                 onSubmitSuccess(reportData);
