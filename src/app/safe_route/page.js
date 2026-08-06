@@ -61,8 +61,8 @@ export default function SafeRoutePage() {
       )}
 
       {step === 1 && (
-        <div className="-mx-4 -mt-6 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-6 flex flex-col min-h-screen">
-          <div className="w-full px-2 sm:px-6 lg:px-8">
+        <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-white">
+          <div className="w-full">
             <SearchSheet
               destination={destination}
               setDestination={setDestination}

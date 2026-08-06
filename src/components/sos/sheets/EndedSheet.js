@@ -2,12 +2,11 @@
 import Image from "next/image";
 
 export default function EndedSheet({
-  shareLiveLocation,
-  contacts,
+  duration,
+  primaryContactName,
+  status,
   onBackHome,
 }) {
-  const selectedContactsCount = contacts.filter((c) => c.selected).length;
-
   return (
     <div className="flex flex-col gap-6 w-full pb-32 relative overflow-hidden min-h-[80vh] pt-16">
       
@@ -28,37 +27,53 @@ export default function EndedSheet({
 
         {/* Title & Message */}
         <div className="text-center mt-6">
-          <h1 className="text-2xl font-bold text-[#3a2a3f]">Glad you're safe! 💗</h1>
-          <p className="text-sm text-gray-400 mt-3 max-w-sm md:max-w-md mx-auto leading-relaxed">
-            Live location sharing has stopped and your trusted contacts have been notified that you're safe.
+          <h1 className="text-[24px] font-bold text-[#3a2a3f]">Glad you're safe! 💗</h1>
+          <p className="text-[14px] text-[#a1a1aa] mt-2 max-w-[250px] mx-auto leading-[20px] font-['Plus_Jakarta_Sans']">
+            Take a deep breath.<br/>We're happy you made it safely.
           </p>
         </div>
 
         {/* Summary Card */}
-        <div className="w-full max-w-md mt-8 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] rounded-[22px] p-5 text-left border border-gray-50 flex flex-col gap-3">
-          <h2 className="text-base font-bold text-[#3a2a3f] border-b border-dashed border-gray-200 pb-3">
-            Emergency Summary
-          </h2>
+        <div className="w-full max-w-md mt-8 bg-white shadow-[0_1px_2px_-1px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.1)] rounded-[22px] p-4 px-5 text-left flex flex-col gap-3 font-['Plus_Jakarta_Sans']">
+          <b className="text-[16px] leading-[24px] text-[#3a2a3f]">Emergency Summary</b>
+          <div className="w-full h-[1px] border-t border-dashed border-[#e4e4e7]"></div>
           
-          <div className="bg-[#fdf5fc] rounded-2xl p-4 flex flex-col gap-3 text-sm text-gray-500">
+          <div className="bg-[#fdf5fc] rounded-[16px] p-3 flex flex-col gap-3 text-[12px] text-[#27272a]">
              
-             {/* Selected Contacts Count */}
-             <div className="flex items-center gap-3">
-                <Image src="/sos/people.svg" alt="Contacts" width={18} height={18} />
-                <span className="font-medium text-[#71717a]">{selectedContactsCount} Trusted Contacts</span>
+             {/* Duration */}
+             <div className="w-full flex items-center justify-between gap-[20px]">
+                <div className="flex items-center gap-[12px]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                    <circle cx="12" cy="12" r="12" fill="#f57fa0"/>
+                    <path d="M12 6v6l4 2" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <div className="leading-[16px] font-medium">Duration</div>
+                </div>
+                <div className="leading-[16px] font-medium text-[#71717a]">{duration || "8 minutes"}</div>
              </div>
              
-             {/* Location Sharing Status */}
-             <div className="flex items-start gap-3">
-                <Image src="/location.svg" alt="Location" width={18} height={18} className="mt-0.5" />
-                <span className="font-medium text-[#71717a]">
-                  {shareLiveLocation ? "Lokasi dibagikan kepada kontak terpercaya" : "Lokasi tidak dibagikan kepada kontak terpercaya"}
-                </span>
+             {/* Primary Contact */}
+             <div className="w-full flex items-center justify-between gap-[20px]">
+                <div className="flex items-center gap-[12px]">
+                  <Image src="/sos/contact.svg" alt="Contact" width={18} height={18} className="shrink-0 object-contain" />
+                  <div className="leading-[16px] font-medium">Primary Contact</div>
+                </div>
+                <div className="leading-[16px] font-medium text-[#71717a]">{primaryContactName || "Dad"}</div>
              </div>
-             
+
+             {/* Status */}
+             <div className="w-full flex items-center justify-between gap-[20px]">
+                <div className="flex items-center gap-[12px]">
+                  <Image src="/sos/done.svg" alt="Status" width={18} height={18} className="shrink-0 object-contain" />
+                  <div className="leading-[16px] font-medium">Emergency mode ended</div>
+                </div>
+                <div className="leading-[16px] font-medium text-[#71717a]">
+                  {status === 'canceled' ? 'Canceled' : 'Successfully'}
+                </div>
+             </div>
+
           </div>
         </div>
-
       </div>
 
       {/* Sticky Bottom Navigation - "Back to Home" */}

@@ -47,7 +47,7 @@ export default function HeatmapView({ activeFilter = "All", isBackground = false
             )}
             
             <MapContainer 
-                key={isBackground ? "bg-map" : "main-map"}
+                key={isBackground ? "bg-map-v2" : "main-map-v2"}
                 center={defaultCenter} 
                 zoom={14} 
                 style={{ height: "100%", width: "100%" }}
@@ -55,10 +55,11 @@ export default function HeatmapView({ activeFilter = "All", isBackground = false
                 scrollWheelZoom={!isBackground}
                 dragging={!isBackground}
                 doubleClickZoom={!isBackground}
+                attributionControl={true}
             >
                 <TileLayer
                     url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    attribution={isBackground ? "" : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}
                 />
 
                 {filteredData.map((data) => (

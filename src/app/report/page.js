@@ -98,7 +98,7 @@ export default function ReportDashboardPage() {
     });
 
     return (
-        <div className="w-full min-h-screen pb-28 md:pb-12 relative -mt-6 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="w-full min-h-[calc(100vh-72px)] pb-28 md:pb-12 relative">
             
             {/* App Bar */}
             <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md px-4 md:px-8 py-4 flex items-center justify-between gap-3 md:border-b md:border-gray-100 transition-all">

@@ -13,18 +13,11 @@ const HeatmapView = dynamic(() => import("@/components/heatmap/HeatmapView"), { 
 export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [savedLocations, setSavedLocations] = useState([
-    { name: "Home", address: "Home" },
-    { name: "Kos", address: "Kos" },
-    { name: "Friend's", address: "Friend's" },
-    { name: "University", address: "University" }
-  ]); 
+  const [savedLocations, setSavedLocations] = useState([]); 
 
   useEffect(() => {
     const storedSaved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
-    if (storedSaved.length > 0) {
-      setSavedLocations(storedSaved);
-    }
+    setSavedLocations(storedSaved);
   }, []);
 
   const handleSearchSubmit = (e) => {
@@ -47,7 +40,7 @@ export default function HomePage() {
         </div>
 
         {/* Floating Header */}
-        <div className="absolute top-0 left-0 right-0 z-[410] bg-white/95 backdrop-blur-md rounded-b-[32px] px-4 pt-8 pb-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border-b border-gray-100 pointer-events-auto">
+        <div className="absolute top-0 left-0 right-0 z-[410] bg-[linear-gradient(180deg,#fff_43.65%,rgba(255,255,255,0.45))] rounded-b-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.08)] px-4 md:px-8 pt-5 md:pt-6 pb-5 md:pb-6 pointer-events-auto">
           <div className="max-w-7xl mx-auto px-2 md:px-6 flex items-center justify-between">
             <div>
               <p className="text-[#f57fa0] text-[13px] font-semibold flex items-center gap-1.5">

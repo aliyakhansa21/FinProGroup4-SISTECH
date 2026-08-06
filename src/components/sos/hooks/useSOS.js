@@ -7,8 +7,10 @@ export function useSOS() {
   const [step, setStep] = useState("idle"); // idle | holding | sending | shared | completed
   const [holdProgress, setHoldProgress] = useState(0);
   const [emergencyNote, setEmergencyNote] = useState(
-    "Hi, ini darurat! Saya mengaktifkan SOS dan mungkin butuh bantuan."
+    "Hi, I may need help. Please check on me when you can."
   );
+  const [sosStartTime, setSosStartTime] = useState(null);
+  const [sosStatus, setSosStatus] = useState("successful"); // successful | canceled
 
   const holdTimerRef = useRef(null);
   const startTimeRef = useRef(null);
@@ -40,12 +42,12 @@ export function useSOS() {
 
   const triggerSOS = () => {
     setHoldProgress(0);
-    // PENTING: Hanya ubah step ke "sending"!! 
-    // JANGAN panggil navigator.share atau setStep("shared") di sini!
+    setSosStartTime(Date.now());
     setStep("sending"); 
   };
 
-  const completeSOS = () => {
+  const completeSOS = (status = "successful") => {
+    setSosStatus(status);
     setStep("completed");
   };
 
@@ -55,6 +57,8 @@ export function useSOS() {
     holdProgress,
     emergencyNote,
     setEmergencyNote,
+    sosStartTime,
+    sosStatus,
     startHold,
     cancelHold,
     triggerSOS,

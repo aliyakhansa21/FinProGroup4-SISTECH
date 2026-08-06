@@ -54,14 +54,6 @@ export default function HeatmapPage() {
                 </div>
 
                 {/* Deskripsi tambahan untuk desktop */}
-                <div className="hidden md:block mt-auto pb-4">
-                    <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3">
-                        <span className="text-xl">💡</span>
-                        <p className="text-xs text-blue-700 leading-relaxed font-medium">
-                            Heatmap ini membantu kamu menghindari area dengan tingkat insiden yang tinggi. Data diperbarui secara real-time berdasarkan laporan anonim komunitas.
-                        </p>
-                    </div>
-                </div>
 
             </div>
 

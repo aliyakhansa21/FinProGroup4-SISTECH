@@ -12,7 +12,7 @@ export default function SafeRouteLayout({
   const [isMobileCollapsed, setIsMobileCollapsed] = useState(false);
 
   return (
-    <div className="-mx-4 -mb-6 relative flex h-[calc(100vh-80px)] flex-col overflow-hidden bg-gray-100 sm:-mx-6 lg:-mx-8 lg:flex-row">
+    <div className="relative flex h-[calc(100vh-72px)] w-full flex-col overflow-hidden bg-gray-100 lg:flex-row">
       
       <div className="relative z-0 flex-1 overflow-hidden">
         <div className="absolute inset-0 h-full w-full">
