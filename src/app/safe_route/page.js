@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import SearchSheet from "@/components/safe-route/sheets/SearchSheet";
 import SafeRouteLayout from "@/components/safe-route/SafeRouteLayout";
 import dynamic from "next/dynamic";
@@ -25,9 +25,11 @@ const mockRoutes = [
   { id: 4, name: "Scenic Route", duration: "25 min", distance: "2.0 km", safetyScore: 75, category: "Scenic", tags: ["Park path", "Quiet"] },
 ];
 
-export default function SafeRoutePage() {
+function SafeRouteContent() {
   const router = useRouter();
-  const [destination, setDestination] = useState("");
+  const searchParams = useSearchParams();
+  const [origin, setOrigin] = useState("128 Oak Street");
+  const [destination, setDestination] = useState(searchParams?.get("destination") || "");
   const [step, setStep] = useState(1);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [modalState, setModalState] = useState(null);
@@ -59,8 +61,8 @@ export default function SafeRoutePage() {
       )}
 
       {step === 1 && (
-        <div className="-mx-4 -mb-6 flex min-h-[calc(100vh-80px)] flex-col justify-end sm:-mx-6 lg:-mx-8">
-          <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-white">
+          <div className="w-full">
             <SearchSheet
               destination={destination}
               setDestination={setDestination}
@@ -73,7 +75,7 @@ export default function SafeRoutePage() {
       {step >= 2 && (
         <SafeRouteLayout
           map={<RouteMap route={selectedRoute} />}
-        header={
+          header={
             step === 4 ? (
               <FloatingHeader
                 variant="arrived"
@@ -88,16 +90,20 @@ export default function SafeRoutePage() {
             ) : (
               <FloatingHeader
                 variant="navigation"
-                origin="128 Oak Street"
+                origin={origin}
                 destination={destination}
                 onBack={() => setStep(step - 1)}
+                onSwap={() => {
+                  setOrigin(destination || "Home");
+                  setDestination(origin);
+                }}
               />
             )
           }
           floatingActions={
-            <FloatingActions 
-              showSOS={step === 3 || step === 4} 
-              onSOS={() => router.push("/sos")} 
+            <FloatingActions
+              showSOS={step === 3 || step === 4}
+              onSOS={() => router.push("/sos")}
             />
           }
         >
@@ -112,7 +118,7 @@ export default function SafeRoutePage() {
           )}
 
           {step === 3 && (
-            <NavigationSheet 
+            <NavigationSheet
               duration="18 min"
               distance="1.4 km"
               onShare={() => alert("Membuka Sharelock (WIP)")}
@@ -154,5 +160,13 @@ export default function SafeRoutePage() {
         onCancel={() => setModalState(null)}
       />
     </>
+  );
+}
+
+export default function SafeRoutePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>}>
+      <SafeRouteContent />
+    </Suspense>
   );
 }

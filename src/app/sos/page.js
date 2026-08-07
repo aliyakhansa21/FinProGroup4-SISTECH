@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSOS } from "@/components/sos/hooks/useSOS";
 import EmergencySheet from "@/components/sos/sheets/EmergencySheet";
@@ -13,8 +14,8 @@ import { getStoredContacts, saveStoredContacts } from "@/lib/storage";
 
 const DEFAULT_CONTACTS = [
   { id: "1", name: "Jesse R.", phone: "+6281234567890", avatar: "JR", selected: true, status: "Sending..." },
-  { id: "2", name: "Dad", phone: "+6281298765432", avatar: "D", selected: true, status: "Sending..." },
-  { id: "3", name: "Maya R.", phone: "+6281311223344", avatar: "MR", selected: true, status: "Sending..." },
+  { id: "2", name: "Dad", phone: "+6281298765432", avatar: "D", selected: false, status: "Sending..." },
+  { id: "3", name: "Maya R.", phone: "+6281311223344", avatar: "MR", selected: false, status: "Sending..." },
 ];
 
 export default function SOSPage() {
@@ -28,6 +29,8 @@ export default function SOSPage() {
     startHold,
     cancelHold,
     completeSOS,
+    sosStartTime,
+    sosStatus,
   } = useSOS();
 
   const [shareLiveLocation, setShareLiveLocation] = useState(true);
@@ -54,7 +57,13 @@ export default function SOSPage() {
   ];
 
   useEffect(() => {
-    const initial = getStoredContacts(DEFAULT_CONTACTS);
+    let initial = getStoredContacts(DEFAULT_CONTACTS);
+    
+    // Sanitize to ensure strictly ONE contact is selected
+    const selectedIndex = initial.findIndex(c => c.selected);
+    const indexToSelect = selectedIndex >= 0 ? selectedIndex : 0;
+    
+    initial = initial.map((c, i) => ({ ...c, selected: i === indexToSelect }));
     setContacts(initial);
   }, []);
 
@@ -72,7 +81,7 @@ export default function SOSPage() {
   const toggleContact = (id) => {
     if (!shareLiveLocation) return;
     const updated = contacts.map((c) =>
-      c.id === id ? { ...c, selected: !c.selected } : c
+      ({ ...c, selected: c.id === id })
     );
     updateContactsState(updated);
   };
@@ -80,7 +89,7 @@ export default function SOSPage() {
   const handleSaveNewContact = () => {
     if (newContact.name.trim() && newContact.phone.trim()) {
       const updated = [
-        ...contacts,
+        ...contacts.map(c => ({ ...c, selected: false })),
         {
           id: Date.now().toString(),
           name: newContact.name.trim(),
@@ -98,9 +107,7 @@ export default function SOSPage() {
 
   // Control Sirine Audio
   useEffect(() => {
-    if (step === "sending" || step === "shared") {
-      playSirenSound();
-    } else {
+    if (step === "idle" || step === "holding" || step === "completed") {
       stopSirenSound();
     }
     return () => stopSirenSound();
@@ -118,7 +125,7 @@ export default function SOSPage() {
 
     const sendWA = (lat, lng) => {
       const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
-      const defaultMsg = "Hi, ini darurat! Saya mengaktifkan SOS dan mungkin butuh bantuan.";
+      const defaultMsg = "Hi, I may need help. Please check on me when you can.";
       const textToSend = `${emergencyNoteRef.current || defaultMsg}\n\n📍 GPS Location:\n${mapsUrl}`;
 
       const selectedContacts = contacts.filter((c) => c.selected);
@@ -152,29 +159,24 @@ export default function SOSPage() {
 
   const handleConfirmCancel = () => {
     setShowCancelModal(false);
-    completeSOS();
+    completeSOS(step === "sending" ? "canceled" : "successful");
+  };
+
+  const calculateDuration = () => {
+    if (!sosStartTime) return "0 minutes";
+    const diff = Math.floor((Date.now() - sosStartTime) / 60000);
+    if (diff < 1) return "Less than a minute";
+    return `${diff} minute${diff > 1 ? 's' : ''}`;
   };
 
   return (
-    <main className="min-h-screen w-full bg-gray-50 p-4 md:p-8 flex justify-center items-start">
+    <main className="-mt-6 min-h-screen w-full bg-[#fffbfb] flex justify-center items-start">
       <div className="w-full max-w-md md:max-w-5xl flex flex-col gap-6">
         
-        {/* Header Navigation */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-100 text-pink-600 transition hover:bg-pink-200"
-            aria-label="Back"
-          >
-            ←
-          </button>
-          <h1 className="text-lg md:text-xl font-bold text-gray-900">Emergency SOS</h1>
-        </div>
-
         {/* SCREEN 1 */}
         {(step === "idle" || step === "holding") && (
           <EmergencySheet
+            onBack={() => router.back()}
             startHold={startHold}
             cancelHold={cancelHold}
             holdProgress={holdProgress}
@@ -197,17 +199,19 @@ export default function SOSPage() {
         {/* SCREEN 2 */}
         {step === "sending" && (
           <SendingSheet
-            contacts={contacts}
-            isWaClicked={isWaClicked}
-            handleOpenWhatsApp={handleOpenWhatsApp}
-            handleFinishSending={handleFinishSending}
+            isPaused={showCancelModal}
             onCancel={() => setShowCancelModal(true)}
+            onCountdownEnd={() => {
+              handleOpenWhatsApp();
+              setStep("shared");
+            }}
           />
         )}
 
         {/* SCREEN 3 */}
         {step === "shared" && (
           <SentSheet
+            onBack={() => router.back()}
             shareLiveLocation={shareLiveLocation}
             contacts={contacts}
             nearbyPlaces={nearbyPlaces}
@@ -216,7 +220,17 @@ export default function SOSPage() {
         )}
 
         {/* SCREEN 4 */}
-        {step === "completed" && <EndedSheet />}
+        {step === "completed" && (
+          <EndedSheet
+            duration={calculateDuration()}
+            primaryContactName={contacts.find(c => c.selected)?.name || contacts[0]?.name}
+            status={sosStatus}
+            onBackHome={() => {
+              setStep("idle");
+              router.push("/");
+            }}
+          />
+        )}
 
       </div>
 

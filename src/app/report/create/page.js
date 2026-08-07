@@ -11,7 +11,7 @@ export default function CreateReportPage() {
     const [view, setView] = useState("form");
 
     return (
-        <div className="w-full bg-white min-h-screen relative overflow-hidden -mt-6 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="w-full min-h-screen relative overflow-hidden -mt-6 -mx-4 sm:-mx-6 lg:-mx-8">
             
             {view === "form" && (
                 <>
@@ -63,7 +63,7 @@ export default function CreateReportPage() {
                         {/* Mascot */}
                         <div className="relative w-32 h-28 md:w-48 md:h-44 shrink-0 -mr-2 md:mr-4">
                             <Image
-                                src="/report-submitted.png"
+                                src="/happylove-maskot.png"
                                 alt="Report Mascot"
                                 fill
                                 sizes="(max-width: 768px) 128px, 192px"
