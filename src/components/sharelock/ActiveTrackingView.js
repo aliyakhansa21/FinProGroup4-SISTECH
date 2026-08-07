@@ -18,6 +18,7 @@ export default function ActiveTrackingView({
     onConfirmedSafe,
 }) {
     const [showConfirm, setShowConfirm] = useState(false);
+    const [showRevokePin, setShowRevokePin] = useState(false);
     const [copied, setCopied] = useState(false);
     const [origin, setOrigin] = useState("...");
 
@@ -83,18 +84,19 @@ export default function ActiveTrackingView({
                     </div>
                 </div>
 
-                {/* Countdown Card */}
-                <div className="bg-white rounded-3xl p-6 text-center shadow-sm border border-gray-100">
-                    <p className="text-xs font-bold text-[#ED6690] tracking-widest uppercase mb-1">
+                {/* Countdown Card — pink bg per mockup */}
+                <div className="bg-[#FDE3EA] rounded-3xl p-6 text-center">
+                    <p className="text-[11px] font-bold text-[#ED6690] tracking-widest uppercase mb-1">
                         SHARING ENDS IN
                     </p>
-                    <p className="text-4xl md:text-5xl font-extrabold text-gray-900 tabular-nums tracking-tight">
+                    <p className="text-4xl md:text-5xl font-extrabold text-[#ED6690] tabular-nums tracking-tight">
                         {remainingLabel}
                     </p>
-                    <p className="text-xs text-gray-400 mt-2 font-medium">
+                    <p className="text-xs text-gray-500 mt-2 font-medium">
                         Auto-expires the moment you confirm arrival
                     </p>
                 </div>
+
 
                 {/* ── 3. Map Card (Seamless layout) ── */}
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
@@ -208,25 +210,44 @@ export default function ActiveTrackingView({
                     </div>
                 </div>
 
-                {/* Revoke Button  */}
+                {/* Revoke Button — requires PIN verification */}
                 <button
-                onClick={onStop}
-                className="w-full h-14 rounded-full border border-[#F5B8CB] text-[#ED6690] font-bold hover:bg-pink-50 transition-colors"
+                    onClick={() => setShowRevokePin(true)}
+                    className="w-full h-14 rounded-full border border-[#F5B8CB] text-[#ED6690] font-bold hover:bg-pink-50 transition-colors"
                 >
-                Revoke link &amp; stop sharing
+                    Revoke link &amp; stop sharing
                 </button>
             </div>
 
+            {/* Confirm Arrival PIN */}
             {showConfirm && (
                 <ConfirmArrivalModal
-                session={session}
-                closeable
-                lockOnMaxAttempts
-                onClose={() => setShowConfirm(false)}
-                onSuccess={() => {
-                    setShowConfirm(false);
-                    onConfirmedSafe();
-                }}
+                    session={session}
+                    title="Confirm Arrival"
+                    subtitle="Enter your PIN to confirm you're safe and stop sharing."
+                    closeable
+                    lockOnMaxAttempts
+                    onClose={() => setShowConfirm(false)}
+                    onSuccess={() => {
+                        setShowConfirm(false);
+                        onConfirmedSafe();
+                    }}
+                />
+            )}
+
+            {/* Revoke PIN — verify user before stopping */}
+            {showRevokePin && (
+                <ConfirmArrivalModal
+                    session={session}
+                    title="Confirm Revoke"
+                    subtitle="Enter your PIN to confirm it's really you before revoking the shared link."
+                    closeable
+                    lockOnMaxAttempts={false}
+                    onClose={() => setShowRevokePin(false)}
+                    onSuccess={() => {
+                        setShowRevokePin(false);
+                        onStop();
+                    }}
                 />
             )}
         </div>
