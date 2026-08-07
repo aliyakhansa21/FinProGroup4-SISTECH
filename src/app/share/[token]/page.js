@@ -26,6 +26,83 @@ export default function PublicTrackingPage({ params }) {
     endCoords: [-6.2297, 106.8295],
   });
 
+  const [isExpired, setIsExpired] = useState(false);
+
+  useEffect(() => {
+    // Initial check
+    const checkTracking = () => {
+      const soraRaw = localStorage.getItem("sora_live_tracking");
+      const shareRaw = localStorage.getItem("activeSharelock");
+
+      if (shareRaw) {
+        try {
+          const parsed = JSON.parse(shareRaw);
+          if (parsed.status === "active" || parsed.status === "grace_period" || parsed.status === "sos_triggered") {
+            setTrackingData(prev => ({
+              ...prev,
+              status: parsed.status === "sos_triggered" ? "sos" : "in_transit"
+            }));
+            setIsExpired(false);
+            return true;
+          }
+        } catch (e) {}
+      }
+
+      if (soraRaw) {
+        try {
+          const parsed = JSON.parse(soraRaw);
+          if (parsed.active) {
+            setTrackingData(prev => ({
+              ...prev,
+              origin: parsed.origin,
+              destination: parsed.destination,
+              startCoords: parsed.startCoords || prev.startCoords,
+              endCoords: parsed.endCoords || prev.endCoords,
+              status: "in_transit"
+            }));
+            setIsExpired(false);
+            return true;
+          }
+        } catch (e) {}
+      }
+
+      setIsExpired(true);
+      return false;
+    };
+
+    checkTracking();
+
+    // Listen for cross-tab changes
+    const handleStorageChange = (e) => {
+      if (e.key === "sora_live_tracking" || e.key === "activeSharelock" || e.type === "sharelock:update") {
+        checkTracking();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    // Support custom event from the same window if testing in single tab
+    window.addEventListener("sharelock:update", handleStorageChange);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("sharelock:update", handleStorageChange);
+    };
+  }, []);
+
+  if (isExpired) {
+    return (
+      <main className="h-[100dvh] w-full flex flex-col items-center justify-center bg-gray-50 px-6 font-sans">
+        <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-6">
+          <span className="text-2xl opacity-50">🔒</span>
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Live Tracking Ended</h1>
+        <p className="text-sm text-gray-500 text-center max-w-sm leading-relaxed">
+          The user has safely ended their journey, or the tracking link has expired.
+        </p>
+      </main>
+    );
+  }
+
   return (
     <main className="relative h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden">
       

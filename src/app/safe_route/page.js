@@ -120,6 +120,8 @@ function SafeRouteContent() {
   };
 
   const handleEndNavigation = () => {
+    localStorage.removeItem("sora_live_tracking");
+    
     setModalState(null);
     setStep(1);
     setDestination("");
@@ -234,8 +236,19 @@ function SafeRouteContent() {
         confirmText="Share Location"
         cancelText="Cancel"
         onConfirm={() => {
+          // Trigger cross-tab sync to make public view active
+          localStorage.setItem("sora_live_tracking", JSON.stringify({
+            active: true,
+            origin: origin || "Current Location",
+            destination: destination || "Destination",
+            startCoords: selectedRoute?.coordinates?.[0] || [-6.2088, 106.8456],
+            endCoords: selectedRoute?.coordinates?.[selectedRoute?.coordinates?.length - 1] || [-6.2297, 106.8295],
+            timestamp: new Date().toISOString()
+          }));
+          
           console.log("Location Shared!");
           setModalState(null);
+          alert("Shareloc aktif! Link (sementara) dapat dilihat di localhost:3000/share/123456");
         }}
         onCancel={() => setModalState(null)}
       />
