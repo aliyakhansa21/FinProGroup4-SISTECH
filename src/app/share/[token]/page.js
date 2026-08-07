@@ -50,7 +50,7 @@ export default function PublicTrackingPage({ params }) {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between border-b border-gray-100 pb-4">
             <div>
-              <h1 className="text-base font-bold text-gray-900">Women Safety Platform</h1>
+              <h1 className="text-base font-bold text-gray-900">Sora</h1>
               <p className="text-xxs text-gray-400">Live Public Tracking ({token})</p>
             </div>
             

@@ -1,7 +1,7 @@
 // src/components/sos/hooks/useSOS.js
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export function useSOS() {
   const [step, setStep] = useState("idle"); // idle | holding | sending | shared | completed
@@ -9,6 +9,16 @@ export function useSOS() {
   const [emergencyNote, setEmergencyNote] = useState(
     "Hi, I may need help. Please check on me when you can."
   );
+  
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedNote = window.localStorage.getItem("sora_sos_message");
+      if (storedNote) {
+        setEmergencyNote(storedNote);
+      }
+    }
+  }, []);
+
   const [sosStartTime, setSosStartTime] = useState(null);
   const [sosStatus, setSosStatus] = useState("successful"); // successful | canceled
 

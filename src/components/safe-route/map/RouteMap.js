@@ -5,8 +5,21 @@ import {
   TileLayer,
   CircleMarker,
   Polyline,
+  useMap
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+
+import { useEffect } from "react";
+
+function FitBounds({ coords }) {
+  const map = useMap();
+  useEffect(() => {
+    if (coords && coords.length > 0) {
+      map.fitBounds(coords, { padding: [50, 50] });
+    }
+  }, [coords, map]);
+  return null;
+}
 
 export default function RouteMap({ route, startCoords, endCoords, height = "420px" }) {
   const startPoint = startCoords || [41.8781, -87.6298];
@@ -41,6 +54,8 @@ export default function RouteMap({ route, startCoords, endCoords, height = "420p
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
+
+        <FitBounds coords={routeCoordinates} />
 
         <Polyline
           positions={routeCoordinates}

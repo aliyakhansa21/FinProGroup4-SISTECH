@@ -11,6 +11,8 @@ import RouteSelectionSheet from "@/components/safe-route/sheets/RouteSelectionSh
 import NavigationSheet from "@/components/safe-route/sheets/NavigationSheet";
 import ArrivalSheet from "@/components/safe-route/sheets/ArrivalSheet";
 import ConfirmModal from "@/components/safe-route/overlays/ConfirmModal";
+import { predictRisk } from "@/services/predictService";
+import { geocode, getRoute } from "@/services/mapService";
 
 
 const RouteMap = dynamic(
@@ -28,14 +30,89 @@ const mockRoutes = [
 function SafeRouteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [origin, setOrigin] = useState("128 Oak Street");
+  const [origin, setOrigin] = useState("My Current Location");
   const [destination, setDestination] = useState(searchParams?.get("destination") || "");
   const [step, setStep] = useState(1);
+  const [routes, setRoutes] = useState(mockRoutes);
+  const [isPredicting, setIsPredicting] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [modalState, setModalState] = useState(null);
 
-  const handleSearchContinue = () => {
-    setStep(2);
+  const handleSearchContinue = async () => {
+    setIsPredicting(true);
+    try {
+      // 1. Geocode Destination
+      const destCoords = await geocode(destination || "Chicago");
+      if (!destCoords) {
+        throw new Error("Location not found");
+      }
+      
+      // 2. Resolve Origin
+      let startLat, startLon;
+      
+      if (origin === "My Current Location") {
+        try {
+          const pos = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+          });
+          startLat = pos.coords.latitude;
+          startLon = pos.coords.longitude;
+        } catch (err) {
+          console.warn("Could not get current location, falling back to default.", err);
+          startLat = -6.2088; // Default Jakarta
+          startLon = 106.8456;
+        }
+      } else {
+        const originCoords = await geocode(origin);
+        if (originCoords) {
+          startLat = originCoords.lat;
+          startLon = originCoords.lon;
+        } else {
+          throw new Error("Origin location not found");
+        }
+      }
+      
+      // 3. Get Route
+      const routeData = await getRoute(startLon, startLat, destCoords.lon, destCoords.lat);
+      if (!routeData) {
+        throw new Error("Route not found");
+      }
+      
+      // 4. Predict Risk
+      const requestData = {
+        latitude: destCoords.lat,
+        longitude: destCoords.lon,
+        location: destCoords.displayName || destination,
+        timestamp: new Date().toISOString()
+      };
+
+      const response = await predictRisk(requestData);
+      
+      if (response && response.status === "success") {
+        // Update the Safest Route score with real ML prediction & coordinates
+        const updatedRoutes = [...routes];
+        updatedRoutes[0] = {
+          ...updatedRoutes[0],
+          safetyScore: response.data.risk_score,
+          coordinates: routeData.coordinates,
+          distance: `${(routeData.distance / 1000).toFixed(1)} km`,
+          duration: `${Math.round(routeData.duration / 60)} min`
+        };
+        // Also update coordinates for other mock routes so they don't break the map
+        updatedRoutes[1].coordinates = routeData.coordinates;
+        updatedRoutes[2].coordinates = routeData.coordinates;
+        updatedRoutes[3].coordinates = routeData.coordinates;
+        
+        setRoutes(updatedRoutes);
+      }
+    } catch (error) {
+      console.warn("ML API prediction failed, falling back to mock data:", error);
+      // Fallback: keep using the original mock routes without crashing
+      setRoutes(mockRoutes);
+    } finally {
+      setIsPredicting(false);
+      setStep(2);
+    }
   };
 
   const handleStartNavigation = () => {
@@ -66,7 +143,10 @@ function SafeRouteContent() {
             <SearchSheet
               destination={destination}
               setDestination={setDestination}
+              origin={origin}
+              setOrigin={setOrigin}
               onContinue={handleSearchContinue}
+              isSearching={isPredicting}
             />
           </div>
         </div>
@@ -109,7 +189,7 @@ function SafeRouteContent() {
         >
           {step === 2 && (
             <RouteSelectionSheet
-              recommendedRoutes={mockRoutes}
+              recommendedRoutes={routes}
               selectedRoute={selectedRoute}
               onSelectRoute={setSelectedRoute}
               onBack={() => setStep(1)}

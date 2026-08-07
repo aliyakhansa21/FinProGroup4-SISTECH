@@ -2,8 +2,9 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { X, Map as MapIcon, ChevronRight, UserPlus, Battery, BellRing } from "lucide-react";
+import { X, Map as MapIcon, ChevronRight, UserPlus, Battery, BellRing, Phone } from "lucide-react";
 import PinDigitInputs from "./PinDigitInputs";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const HeatmapView = dynamic(() => import("@/components/heatmap/HeatmapView"), { ssr: false });
 
@@ -13,6 +14,10 @@ export default function ShareSetupForm({ onStart }) {
     const [pinDigits, setPinDigits] = useState(["", "", "", ""]);
     const [confirmDigits, setConfirmDigits] = useState(["", "", "", ""]);
     const [formError, setFormError] = useState(null);
+    const [contacts] = useLocalStorage("sos_trusted_contacts", [
+        { id: "1", name: "Mom", phone: "+628111111111", avatar: "M" },
+        { id: "2", name: "Dad", phone: "+628222222222", avatar: "D" }
+    ]);
 
     const durations = [
         { label: "1 Min", value: 1},
@@ -134,59 +139,29 @@ export default function ShareSetupForm({ onStart }) {
                     </div>
 
                     <div className="space-y-4">
-                        {/* Maya R */}
-                        <div className="flex items-center justify-between p-3 -mx-3 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-lg">
-                                MR
+                        {contacts.map((contact, idx) => (
+                            <div key={contact.id || idx}>
+                                <div className="flex items-center justify-between p-3 -mx-3 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-lg uppercase">
+                                            {contact.avatar || contact.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-900">{contact.name}</h4>
+                                            <p className="text-xs text-gray-500 mt-0.5">{contact.phone}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                        <div className="flex items-center space-x-1 text-gray-500 text-xs">
+                                            <Battery className="w-3.5 h-3.5" />
+                                            <span>{Math.floor(Math.random() * 40 + 60)}%</span>
+                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-gray-400 mt-1" />
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900">Maya R</h4>
-                                    <p className="text-xs text-green-600 font-medium mt-0.5">Sharing 1.2 km away until 9:00 PM</p>
-                                </div>
+                                {idx < contacts.length - 1 && <div className="h-px bg-gray-100 ml-16" />}
                             </div>
-                            <div className="flex flex-col items-end">
-                                <div className="flex items-center space-x-1 text-gray-500 text-xs">
-                                    <Battery className="w-3.5 h-3.5" />
-                                    <span>78%</span>
-                                </div>
-                                <ChevronRight className="w-5 h-5 text-gray-400 mt-1" />
-                            </div>
-                        </div>
-                        
-                        <div className="h-px bg-gray-100 ml-16" />
-
-                        {/* Dad */}
-                        <div className="flex items-center justify-between p-3 -mx-3 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-lg">
-                                D
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900">Dad</h4>
-                                    <p className="text-xs text-gray-500 mt-0.5">Last seen 20 min ago</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="w-5 h-5 text-gray-400" />
-                        </div>
-                        
-                        <div className="h-px bg-gray-100 ml-16" />
-
-                        {/* Jesse R. */}
-                        <div className="flex items-center justify-between p-3 -mx-3 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">
-                                JR
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900">Jesse R.</h4>
-                                    <p className="text-xs text-gray-500 mt-0.5">Not sharing location</p>
-                                </div>
-                            </div>
-                            <button className="px-4 py-1.5 rounded-full border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors">
-                                Request
-                            </button>
-                        </div>
+                        ))}
                     </div>
                 </div>
 

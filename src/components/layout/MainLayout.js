@@ -1,5 +1,6 @@
 import Header from "./Header";
 import MobileNav from "./MobileNav";
+import Footer from "./Footer";
 
 export default function MainLayout({ children }) {
   return (
@@ -7,9 +8,11 @@ export default function MainLayout({ children }) {
       <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col bg-[#fffbfb]">
         <Header />
 
-        <main className="flex-1 w-full">
+        <main className="flex-1 w-full flex flex-col">
           {children}
         </main>
+        
+        <Footer />
       </div>
       
       <MobileNav />
