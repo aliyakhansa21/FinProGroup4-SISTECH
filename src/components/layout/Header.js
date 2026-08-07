@@ -11,7 +11,7 @@ export default function Header() {
     { name: "Home", href: "/" },
     { name: "Route", href: "/safe_route" },
     { name: "Report", href: "/report" },
-    { name: "Shareloc", href: "/share" },
+    { name: "Shareloc", href: "/sharelock" },
   ];
 
   return (

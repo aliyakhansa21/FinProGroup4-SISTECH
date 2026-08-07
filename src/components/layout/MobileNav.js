@@ -29,7 +29,7 @@ export default function MobileNav() {
   const pathname = usePathname();
 
   // Hanya tampilkan Mobile Navbar di halaman beranda, report (halaman 1), settings, dan profile
-  const allowedPaths = ["/", "/report", "/settings", "/profile"];
+  const allowedPaths = ["/", "/report", "/settings", "/profile", "/sharelock"];
   const isAllowed = allowedPaths.includes(pathname);
 
   if (!isAllowed) return null;
@@ -60,8 +60,8 @@ export default function MobileNav() {
       <NavItem
         iconSrc="/navbar/sharelock.svg"
         label="Shareloc"
-        href="/share"
-        active={pathname === "/share"}
+        href="/sharelock"
+        active={pathname === "/sharelock"}
       />
     </nav>
   );
