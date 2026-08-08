@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, Search, MapPin, ChevronDown, Bookmark } from "lucide-react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 // Memanggil HeatmapView secara dinamis agar tidak bentrok dengan SSR
 const HeatmapView = dynamic(() => import("@/components/heatmap/HeatmapView"), { ssr: false });
@@ -14,6 +15,8 @@ export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [savedLocations, setSavedLocations] = useState([]);
+  const [fullName] = useLocalStorage("sora_full_name", "Jane Doe");
+  const firstName = fullName.split(' ')[0];
 
   useEffect(() => {
     const storedSaved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
@@ -46,7 +49,7 @@ export default function HomePage() {
               <p className="text-[#f57fa0] text-[13px] font-semibold flex items-center gap-1.5">
                 Good Morning <span className="text-[13px]">✨</span>
               </p>
-              <h1 className="text-[22px] md:text-3xl font-bold text-gray-900 mt-0.5 tracking-tight">Where to, Jane?</h1>
+              <h1 className="text-[22px] md:text-3xl font-bold text-gray-900 mt-0.5 tracking-tight">Where to, {firstName}?</h1>
             </div>
             <div className="flex items-center gap-4">
               <button className="w-9 h-9 flex items-center justify-center relative hover:bg-gray-50 rounded-full transition-colors">
@@ -54,7 +57,7 @@ export default function HomePage() {
                 <span className="absolute top-1 right-2 w-2 h-2 bg-[#f57fa0] rounded-full ring-2 ring-white"></span>
               </button>
               <Link href="/profile" className="block w-10 h-10 rounded-full bg-indigo-100 overflow-hidden border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all">
-                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Jane&backgroundColor=818cf8" className="w-full h-full object-cover" alt="Avatar" />
+                <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${firstName}&backgroundColor=EE537F`} className="w-full h-full object-cover" alt="Avatar" />
               </Link>
             </div>
           </div>

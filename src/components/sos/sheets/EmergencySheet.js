@@ -65,7 +65,7 @@ export default function EmergencySheet({
         <div className="rounded-[22px] border border-gray-100 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.1)] flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Image src="/sos/contact.svg" alt="Contact" width={20} height={20} />
+              <Image src="/sos/people.svg" alt="Contact" width={20} height={20} />
               <h3 className="text-base font-bold text-gray-900">Primary Emergency Contact</h3>
             </div>
             <button

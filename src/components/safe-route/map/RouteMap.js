@@ -5,20 +5,31 @@ import {
   TileLayer,
   CircleMarker,
   Polyline,
+  useMap
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
+import { useEffect } from "react";
+
+function FitBounds({ coords }) {
+  const map = useMap();
+  useEffect(() => {
+    // Add timeout to ensure DOM container has fully expanded before calculating size
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+      if (coords && coords.length > 0) {
+        map.fitBounds(coords, { padding: [50, 50] });
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [coords, map]);
+  return null;
+}
+
 export default function RouteMap({ route, startCoords, endCoords, height = "420px" }) {
-  const startPoint = startCoords || [41.8781, -87.6298];
-
-  const routeCoordinates = route?.coordinates || (startCoords && endCoords ? [startCoords, endCoords] : [
-    [41.8781, -87.6298],
-    [41.8815, -87.625],
-    [41.8845, -87.618],
-    [41.889, -87.614],
-  ]);
-
-  const endPoint = endCoords || routeCoordinates[routeCoordinates.length - 1];
+  const startPoint = startCoords || [-6.2088, 106.8456]; // Default to Jakarta
+  const routeCoordinates = route?.coordinates || null;
+  const endPoint = endCoords || (routeCoordinates ? routeCoordinates[routeCoordinates.length - 1] : startPoint);
 
   const getRouteColor = (risk) => {
     if (!risk) return "#111827";
@@ -34,7 +45,7 @@ export default function RouteMap({ route, startCoords, endCoords, height = "420p
       <MapContainer
         center={startPoint}
         zoom={14}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
@@ -42,14 +53,19 @@ export default function RouteMap({ route, startCoords, endCoords, height = "420p
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
 
-        <Polyline
-          positions={routeCoordinates}
-          pathOptions={{
-            color: getRouteColor(route?.risk),
-            weight: 6,
-            opacity: 0.9,
-          }}
-        />
+        {routeCoordinates && (
+          <>
+            <FitBounds coords={routeCoordinates} />
+            <Polyline
+              positions={routeCoordinates}
+              pathOptions={{
+                color: getRouteColor(route?.risk),
+                weight: 6,
+                opacity: 0.9,
+              }}
+            />
+          </>
+        )}
 
         <CircleMarker
           center={startPoint}

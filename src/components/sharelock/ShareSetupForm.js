@@ -2,7 +2,9 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { X, Map as MapIcon, ChevronRight, UserPlus, Battery, BellRing, Delete } from "lucide-react";
+import { X, Map as MapIcon, ChevronRight, UserPlus, Battery, BellRing, Phone, Delete } from "lucide-react";
+import PinDigitInputs from "./PinDigitInputs";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const HeatmapView = dynamic(() => import("@/components/heatmap/HeatmapView"), { ssr: false });
 
@@ -87,6 +89,10 @@ function PinKeypad({ title, subtitle, digits, onKeyPress, onDelete, onBack, erro
 export default function ShareSetupForm({ onStart }) {
   const [selectedDuration, setSelectedDuration] = useState(30);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [contacts] = useLocalStorage("sos_trusted_contacts", [
+      { id: "1", name: "Mom", phone: "+628111111111", avatar: "M" },
+      { id: "2", name: "Dad", phone: "+628222222222", avatar: "D" }
+  ]);
 
   // PIN flow: "set" → "confirm"
   const [pinStep, setPinStep] = useState("set"); // "set" | "confirm"
@@ -255,51 +261,32 @@ export default function ShareSetupForm({ onStart }) {
           </div>
 
           <div className="space-y-4">
-            {/* Maya R */}
-            <div className="flex items-center justify-between p-3 -mx-3 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer">
-              <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 rounded-full bg-pink-100 flex items-center justify-center text-[#ED6690] font-bold">MR</div>
-                <div>
-                  <h4 className="font-bold text-gray-900 text-sm">Maya R</h4>
-                  <p className="text-xs text-green-600 font-medium mt-0.5">Sharing 1.2 km away until 9:00 PM</p>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Battery className="w-3 h-3 text-gray-400" />
-                    <span className="text-[11px] text-gray-400">78%</span>
+            {contacts.length === 0 && (
+              <p className="text-sm text-gray-500 italic">No trusted contacts added yet.</p>
+            )}
+            {contacts.map((contact, idx) => (
+              <div key={contact.id || idx}>
+                <div className="flex items-center justify-between p-3 -mx-3 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-11 h-11 rounded-full bg-pink-100 flex items-center justify-center text-[#ED6690] font-bold text-sm uppercase">
+                      {contact.avatar || contact.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-sm">{contact.name}</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">{contact.phone}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <div className="flex items-center space-x-1 text-gray-500 text-[11px]">
+                      <Battery className="w-3 h-3 text-gray-400" />
+                      <span>{Math.floor(Math.random() * 40 + 60)}%</span>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 mt-1 shrink-0" />
                   </div>
                 </div>
+                {idx < contacts.length - 1 && <div className="h-px bg-gray-100 ml-14" />}
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
-            </div>
-
-            <div className="h-px bg-gray-100 ml-14" />
-
-            {/* Dad */}
-            <div className="flex items-center justify-between p-3 -mx-3 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer">
-              <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">D</div>
-                <div>
-                  <h4 className="font-bold text-gray-900 text-sm">Dad</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Last seen 20 min ago</p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
-            </div>
-
-            <div className="h-px bg-gray-100 ml-14" />
-
-            {/* Jesse R. */}
-            <div className="flex items-center justify-between p-3 -mx-3 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer">
-              <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-sm">JR</div>
-                <div>
-                  <h4 className="font-bold text-gray-900 text-sm">Jesse R.</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Not sharing location</p>
-                </div>
-              </div>
-              <button className="px-4 py-1.5 rounded-full border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors">
-                Request
-              </button>
-            </div>
+            ))}
           </div>
         </div>
 

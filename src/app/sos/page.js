@@ -11,6 +11,7 @@ import EndedSheet from "@/components/sos/sheets/EndedSheet";
 import ConfirmSafeModal from "@/components/sos/modals/ConfirmSafeModal";
 import { playSirenSound, stopSirenSound } from "@/lib/sirenAudio";
 import { getStoredContacts, saveStoredContacts } from "@/lib/storage";
+import { getNearbySafePlaces } from "@/services/placesService";
 
 const DEFAULT_CONTACTS = [
   { id: "1", name: "Jesse R.", phone: "+6281234567890", avatar: "JR", selected: true, status: "Sending..." },
@@ -44,17 +45,39 @@ export default function SOSPage() {
   const messageInputRef = useRef(null);
   const emergencyNoteRef = useRef(emergencyNote);
   const [contacts, setContacts] = useState(DEFAULT_CONTACTS);
+  const [userLocation, setUserLocation] = useState({ lat: -6.2088, lng: 106.8456 });
 
   useEffect(() => {
     emergencyNoteRef.current = emergencyNote;
   }, [emergencyNote]);
 
   // Nearby Safe Places Data
-  const nearbyPlaces = [
+  const [realPlaces, setRealPlaces] = useState([
     { id: "p1", name: "Police Station", distance: "300 m", icon: "🚓", lat: -6.2088, lng: 106.8456 },
     { id: "p2", name: "Hospital", distance: "450 m", icon: "🏥", lat: -6.2095, lng: 106.8462 },
     { id: "p3", name: "24 Hour Store", distance: "120 m", icon: "🏪", lat: -6.2081, lng: 106.8449 },
-  ];
+  ]);
+
+  useEffect(() => {
+    if (step === "sending" || step === "shared") {
+      const fetchPlaces = async (lat, lng) => {
+        setUserLocation({ lat, lng });
+        const places = await getNearbySafePlaces(lat, lng);
+        if (places && places.length > 0) {
+          setRealPlaces(places.slice(0, 4));
+        }
+      };
+
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => fetchPlaces(pos.coords.latitude, pos.coords.longitude),
+          () => fetchPlaces(-6.2088, 106.8456)
+        );
+      } else {
+        fetchPlaces(-6.2088, 106.8456);
+      }
+    }
+  }, [step]);
 
   useEffect(() => {
     let initial = getStoredContacts(DEFAULT_CONTACTS);
@@ -214,7 +237,9 @@ export default function SOSPage() {
             onBack={() => router.back()}
             shareLiveLocation={shareLiveLocation}
             contacts={contacts}
-            nearbyPlaces={nearbyPlaces}
+            nearbyPlaces={realPlaces}
+            emergencyMessage={emergencyNoteRef.current}
+            userLocation={userLocation}
             onIAmSafe={() => setShowCancelModal(true)}
           />
         )}

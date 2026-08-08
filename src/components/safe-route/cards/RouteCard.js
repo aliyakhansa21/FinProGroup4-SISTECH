@@ -14,6 +14,14 @@ export default function RouteCard({
   const strokeDasharray = 2 * Math.PI * 14; // roughly 87.96
   const strokeDashoffset = strokeDasharray - ((route.safetyScore || 0) / 100) * strokeDasharray;
   
+  // Calculate dynamic departure and arrival time
+  const now = new Date();
+  const departTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  const rawDurationSeconds = route.rawDuration || 18 * 60;
+  const arrivalDate = new Date(now.getTime() + rawDurationSeconds * 1000);
+  const arrivalTime = arrivalDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  const displayTime = `${departTime}–${arrivalTime}`;
+
   return (
     <div
       onClick={onClick}
@@ -55,8 +63,7 @@ export default function RouteCard({
             <h3 className={`font-bold text-[17px] leading-tight mb-0.5 ${selected ? "text-gray-900" : "text-gray-700"}`}>
               {route.name}
             </h3>
-            {/* Hardcoded time range for visual accuracy to mockup */}
-            <div className="text-[13px] text-gray-400 font-medium">9:41–9:59</div>
+            <div className="text-[13px] text-gray-400 font-medium">{displayTime}</div>
           </div>
         </div>
 

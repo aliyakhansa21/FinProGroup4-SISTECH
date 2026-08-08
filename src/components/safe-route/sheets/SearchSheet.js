@@ -15,13 +15,19 @@ import { useRouter } from "next/navigation";
 export default function SearchSheet({
   destination,
   setDestination,
+  origin,
+  setOrigin,
   onContinue,
+  isSearching,
 }) {
   const router = useRouter();
   const [recentSearches, setRecentSearches] = useState([]);
   const [savedLocations, setSavedLocations] = useState([]);
-  const [origin, setOrigin] = useState("128 Oak Street");
   const [isManagingSaved, setIsManagingSaved] = useState(false);
+
+  const [activeField, setActiveField] = useState('destination');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
 
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [locationToSave, setLocationToSave] = useState(null);
@@ -40,6 +46,30 @@ export default function SearchSheet({
     setRecentSearches(storedRecent);
     setSavedLocations(migratedSaved);
   }, []);
+
+  const searchTerm = activeField === 'origin' ? origin : destination;
+
+  useEffect(() => {
+    if (searchTerm === "My Current Location" || searchTerm.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearchingLocation(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm)}&format=json&limit=5&countrycodes=id`
+        );
+        const data = await response.json();
+        setSearchResults(data.map(item => item.display_name));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearchingLocation(false);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm, activeField]);
 
   const saveRecent = (dest) => {
     if (!dest) return;
@@ -122,8 +152,9 @@ export default function SearchSheet({
               <input
                 value={origin}
                 onChange={(e) => setOrigin(e.target.value)}
+                onFocus={() => setActiveField('origin')}
                 placeholder="Your current location..."
-                className="w-full bg-transparent outline-none text-[15px] font-medium text-gray-800"
+                className={`w-full bg-transparent outline-none text-[15px] font-medium ${origin === "My Current Location" ? "text-gray-400" : "text-gray-800"}`}
               />
             </div>
 
@@ -138,6 +169,7 @@ export default function SearchSheet({
               <input
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
+                onFocus={() => setActiveField('destination')}
                 placeholder="Search destination..."
                 className="w-full bg-transparent outline-none text-[15px] font-medium text-gray-900 placeholder:text-gray-400"
                 autoFocus
@@ -174,58 +206,44 @@ export default function SearchSheet({
         </div>
       </div>
 
-      {/* History (Recent Searches) */}
       <div className="flex flex-col w-full px-4 sm:px-6 pt-6 pb-32 z-10 relative">
-        {recentSearches.length === 0 ? (
-          // Mock history to match Figma exactly if empty
+        {(activeField === 'origin' ? origin : destination).length >= 3 && origin !== "My Current Location" || (activeField === 'destination' && destination.length >= 3) ? (
+          // Show Search Results
           <div className="flex flex-col w-full">
-            <div className="flex flex-col w-full">
-              <button className="flex w-full items-center justify-between py-3.5 text-left group">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
-                    <Clock3 size={18} className="text-white" strokeWidth={3} />
+            {isSearchingLocation && <p className="text-sm text-gray-500 py-2">Searching...</p>}
+            {!isSearchingLocation && searchResults.length === 0 && (
+              <p className="text-sm text-gray-500 py-6 italic text-center">Lokasi spesifik tidak ditemukan.<br/>Coba gunakan kata kunci yang lebih umum atau nama jalan.</p>
+            )}
+            {searchResults.map((item, idx) => (
+              <div key={item + idx} className="flex flex-col w-full">
+                <button
+                  onClick={() => {
+                    if (activeField === 'origin') {
+                      setOrigin(item);
+                      setActiveField('destination');
+                    } else {
+                      setDestination(item);
+                    }
+                    setSearchResults([]);
+                  }}
+                  className="flex w-full items-center justify-between py-3.5 group text-left transition hover:bg-gray-50/50"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-pink-50">
+                      <MapPin size={18} className="text-pink-500" strokeWidth={2} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-gray-900 text-[15px]">{item.split(',')[0]}</span>
+                      <span className="text-xs text-gray-400 mt-0.5 line-clamp-1">{item}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-gray-900 text-[15px]">Home</span>
-                    <span className="text-xs text-gray-400 mt-0.5">Jl. Boulevard Raya, Kelapa Gading</span>
-                  </div>
-                </div>
-                <X size={16} className="text-gray-400" />
-              </button>
-              <div className="w-full border-t-[1.5px] border-dashed border-gray-200 my-1" />
-            </div>
-
-            <div className="flex flex-col w-full">
-              <button className="flex w-full items-center justify-between py-3.5 text-left group">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
-                    <Clock3 size={18} className="text-white" strokeWidth={3} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-gray-900 text-[15px]">Campus</span>
-                    <span className="text-xs text-gray-400 mt-0.5">Jl. Halimun Raya No. 2, Tebet</span>
-                  </div>
-                </div>
-                <X size={16} className="text-gray-400" />
-              </button>
-              <div className="w-full border-t-[1.5px] border-dashed border-gray-200 my-1" />
-            </div>
-
-            <div className="flex flex-col w-full">
-              <button className="flex w-full items-center justify-between py-3.5 text-left group">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
-                    <Clock3 size={18} className="text-white" strokeWidth={3} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-gray-900 text-[15px]">Mall Taman Anggrek</span>
-                    <span className="text-xs text-gray-400 mt-0.5">Jl. Letjen S. Parman Kav. 21, Grogol Petamburan</span>
-                  </div>
-                </div>
-                <X size={16} className="text-gray-400" />
-              </button>
-            </div>
+                </button>
+                <div className="w-full border-t-[1.5px] border-dashed border-gray-200 my-1" />
+              </div>
+            ))}
           </div>
+        ) : recentSearches.length === 0 ? (
+          <p className="text-sm text-gray-400 italic text-center mt-10">No recent searches</p>
         ) : (
           recentSearches.map((item, idx) => (
             <div key={item} className="flex flex-col w-full">
@@ -274,14 +292,14 @@ export default function SearchSheet({
         <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 pointer-events-auto">
           <button
             onClick={handleContinueClick}
-            disabled={!destination || !origin}
+            disabled={!destination || !origin || isSearching}
             className={`w-full rounded-full py-4 text-[15px] font-bold text-white shadow-xl transition-all ${
-              destination && origin
+              (destination && origin) && !isSearching
                 ? "bg-pink-500 active:scale-[0.98] hover:bg-pink-600"
                 : "bg-gray-300 cursor-not-allowed shadow-none"
             }`}
           >
-            Continue
+            {isSearching ? "Predicting Safety..." : "Continue"}
           </button>
         </div>
       </div>

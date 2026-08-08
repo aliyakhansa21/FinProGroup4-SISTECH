@@ -8,7 +8,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: "Women Safety Platform",
+  title: "Sora",
   description: "SISTECH 2026 Final Project",
 };
 

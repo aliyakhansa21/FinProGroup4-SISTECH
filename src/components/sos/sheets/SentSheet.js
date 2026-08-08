@@ -13,6 +13,8 @@ export default function SentSheet({
     { name: "24 Hour Store", distance: "120 m" }
   ],
   onIAmSafe,
+  emergencyMessage,
+  userLocation = { lat: -6.2088, lng: 106.8456 },
 }) {
   const [isMuted, setIsMuted] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -45,8 +47,9 @@ export default function SentSheet({
     const lat = -6.2088; 
     const lng = 106.8456;
     const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
-    const text = `Hi ${primaryContact.name}, I may need help. Please check on me when you can. Location: ${mapsUrl}`;
-    const waUrl = `https://wa.me/${primaryContact.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(text)}`;
+    const defaultMsg = `Hi ${primaryContact.name}, I may need help. Please check on me when you can.`;
+    const textToSend = `${emergencyMessage || defaultMsg}\n\n📍 GPS Location:\n${mapsUrl}`;
+    const waUrl = `https://wa.me/${primaryContact.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(textToSend)}`;
     window.open(waUrl, "_blank");
   };
 
@@ -206,7 +209,16 @@ export default function SentSheet({
           
           <div className="flex flex-col gap-3 w-full">
             {nearbyPlaces.map((place, idx) => (
-              <div key={idx} className="w-full rounded-[16px] bg-[#fafafa] flex items-center justify-between p-[10px]">
+              <button 
+                key={idx} 
+                onClick={() => {
+                  if (place.lat && place.lng) {
+                    const navUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${place.lat},${place.lng}&travelmode=walking`;
+                    window.open(navUrl, "_blank");
+                  }
+                }}
+                className="w-full rounded-[16px] bg-[#fafafa] flex items-center justify-between p-[10px] hover:bg-[#f4f4f5] transition cursor-pointer"
+              >
                 <div className="flex flex-col text-left">
                   <span className="text-[14px] font-semibold text-[#3a2a3f] leading-[20px]">{place.name}</span>
                   <span className="text-[12px] text-[#a1a1aa] leading-[16px]">{place.distance}</span>
@@ -214,7 +226,7 @@ export default function SentSheet({
                 <div className="h-10 w-10 rounded-full bg-[#ffe0d3] flex items-center justify-center shrink-0">
                   <Image src="/sos/Navigate Icon.svg" alt="Navigate" width={16} height={16} />
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, Bell, ChevronRight, BadgeCheck } from "lucide-react";
 import MobileNav from "@/components/layout/MobileNav";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 function MenuItem({ title, href }) {
   const content = (
@@ -39,6 +40,9 @@ function MenuSection({ title, items }) {
 }
 
 export default function ProfilePage() {
+  const [fullName] = useLocalStorage("sora_full_name", "Jane Doe");
+  const [username] = useLocalStorage("sora_username", "@janedoe");
+
   return (
     <div className="min-h-screen bg-[#fffbfb] pb-32 font-['Plus_Jakarta_Sans']">
       {/* Header */}
@@ -61,9 +65,9 @@ export default function ProfilePage() {
           {/* Left Column: Profile Info */}
           <div className="w-full md:w-[320px] lg:w-[350px] shrink-0 flex flex-col items-center">
             {/* Avatar */}
-            <div className="relative w-[148px] h-[148px] rounded-full bg-[#9a7ed9] shadow-[0_2px_16px_rgba(0,0,0,0.07)] mb-5">
+            <div className="relative w-[148px] h-[148px] rounded-full bg-[#EE537F] shadow-[0_2px_16px_rgba(0,0,0,0.07)] mb-5">
               <Image 
-                src="https://api.dicebear.com/7.x/notionists/svg?seed=FinPro&backgroundColor=9a7ed9" 
+                src="https://api.dicebear.com/7.x/notionists/svg?seed=Sora&backgroundColor=EE537F" 
                 alt="Profile Avatar" 
                 fill 
                 className="object-cover rounded-full" 
@@ -73,7 +77,8 @@ export default function ProfilePage() {
 
             {/* User Details */}
             <div className="flex flex-col items-center text-center mb-8">
-              <h2 className="text-[22px] font-bold text-[#27272a] mb-1.5">Username</h2>
+              <h2 className="text-[22px] font-bold text-[#27272a] mb-1.5">{fullName}</h2>
+              <p className="text-[14px] text-[#71717a] font-medium mb-1">{username}</p>
               <div className="flex items-center gap-1.5 text-[#008235] mb-2">
                 <BadgeCheck className="w-[18px] h-[18px]" />
                 <span className="text-[13px] font-semibold tracking-wide">Verified Member</span>

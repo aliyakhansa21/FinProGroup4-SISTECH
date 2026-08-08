@@ -24,7 +24,86 @@ export default function PublicTrackingPage({ params }) {
     // Koordinat Rute Contoh (Chicago / Jakarta)
     startCoords: [-6.2088, 106.8456],
     endCoords: [-6.2297, 106.8295],
+    routeCoordinates: null,
   });
+
+  const [isExpired, setIsExpired] = useState(false);
+
+  useEffect(() => {
+    // Initial check
+    const checkTracking = () => {
+      const soraRaw = localStorage.getItem("sora_live_tracking");
+      const shareRaw = localStorage.getItem("activeSharelock");
+
+      if (shareRaw) {
+        try {
+          const parsed = JSON.parse(shareRaw);
+          if (parsed.status === "active" || parsed.status === "grace_period" || parsed.status === "sos_triggered") {
+            setTrackingData(prev => ({
+              ...prev,
+              status: parsed.status === "sos_triggered" ? "sos" : "in_transit"
+            }));
+            setIsExpired(false);
+            return true;
+          }
+        } catch (e) {}
+      }
+
+      if (soraRaw) {
+        try {
+          const parsed = JSON.parse(soraRaw);
+          if (parsed.active) {
+            setTrackingData(prev => ({
+              ...prev,
+              origin: parsed.origin,
+              destination: parsed.destination,
+              startCoords: parsed.startCoords || prev.startCoords,
+              endCoords: parsed.endCoords || prev.endCoords,
+              routeCoordinates: parsed.routeCoordinates || prev.routeCoordinates,
+              status: "in_transit"
+            }));
+            setIsExpired(false);
+            return true;
+          }
+        } catch (e) {}
+      }
+
+      setIsExpired(true);
+      return false;
+    };
+
+    checkTracking();
+
+    // Listen for cross-tab changes
+    const handleStorageChange = (e) => {
+      if (e.key === "sora_live_tracking" || e.key === "activeSharelock" || e.type === "sharelock:update") {
+        checkTracking();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    // Support custom event from the same window if testing in single tab
+    window.addEventListener("sharelock:update", handleStorageChange);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("sharelock:update", handleStorageChange);
+    };
+  }, []);
+
+  if (isExpired) {
+    return (
+      <main className="h-[100dvh] w-full flex flex-col items-center justify-center bg-gray-50 px-6 font-sans">
+        <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-6">
+          <span className="text-2xl opacity-50">🔒</span>
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Live Tracking Ended</h1>
+        <p className="text-sm text-gray-500 text-center max-w-sm leading-relaxed">
+          The user has safely ended their journey, or the tracking link has expired.
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main className="relative h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden">
@@ -50,7 +129,7 @@ export default function PublicTrackingPage({ params }) {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between border-b border-gray-100 pb-4">
             <div>
-              <h1 className="text-base font-bold text-gray-900">Women Safety Platform</h1>
+              <h1 className="text-base font-bold text-gray-900">Sora</h1>
               <p className="text-xxs text-gray-400">Live Public Tracking ({token})</p>
             </div>
             
@@ -134,6 +213,7 @@ export default function PublicTrackingPage({ params }) {
       {/* MAP AREA CONTAINER WITH LEAFLET */}
       <section className="relative flex-1 h-full w-full z-10 flex flex-col">
         <RouteMap
+          route={{ coordinates: trackingData.routeCoordinates, risk: trackingData.riskScore }}
           startCoords={trackingData.startCoords}
           endCoords={trackingData.endCoords}
         />

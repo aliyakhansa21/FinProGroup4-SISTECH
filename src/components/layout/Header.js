@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
 
@@ -19,8 +20,15 @@ export default function Header() {
       <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Logo / Brand */}
-        <Link href="/" className="text-lg md:text-xl font-bold text-gray-900 hover:text-[#ED6690] transition-colors">
-          Women Safety <span className="text-[#ED6690]">Platform</span>
+        <Link href="/" className="group flex items-center hover:opacity-80 transition-opacity duration-300">
+          <Image 
+            src="/logo-sora-colour.svg" 
+            alt="Sora Logo" 
+            width={160} 
+            height={48} 
+            className="h-10 w-auto md:h-12"
+            priority
+          />
         </Link>
 
         {/* Desktop Navigation */}
