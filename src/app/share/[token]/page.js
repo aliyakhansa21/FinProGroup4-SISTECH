@@ -24,6 +24,7 @@ export default function PublicTrackingPage({ params }) {
     // Koordinat Rute Contoh (Chicago / Jakarta)
     startCoords: [-6.2088, 106.8456],
     endCoords: [-6.2297, 106.8295],
+    routeCoordinates: null,
   });
 
   const [isExpired, setIsExpired] = useState(false);
@@ -58,6 +59,7 @@ export default function PublicTrackingPage({ params }) {
               destination: parsed.destination,
               startCoords: parsed.startCoords || prev.startCoords,
               endCoords: parsed.endCoords || prev.endCoords,
+              routeCoordinates: parsed.routeCoordinates || prev.routeCoordinates,
               status: "in_transit"
             }));
             setIsExpired(false);
@@ -211,6 +213,7 @@ export default function PublicTrackingPage({ params }) {
       {/* MAP AREA CONTAINER WITH LEAFLET */}
       <section className="relative flex-1 h-full w-full z-10 flex flex-col">
         <RouteMap
+          route={{ coordinates: trackingData.routeCoordinates, risk: trackingData.riskScore }}
           startCoords={trackingData.startCoords}
           endCoords={trackingData.endCoords}
         />

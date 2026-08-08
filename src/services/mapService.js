@@ -22,24 +22,25 @@ export const geocode = async (address) => {
 };
 
 // OSRM for Routing
-export const getRoute = async (startLon, startLat, endLon, endLat) => {
+export const getRoutes = async (startLon, startLat, endLon, endLat) => {
   try {
     const response = await fetch(
-      `https://router.project-osrm.org/route/v1/driving/${startLon},${startLat};${endLon},${endLat}?overview=full&geometries=geojson`
+      `https://router.project-osrm.org/route/v1/driving/${startLon},${startLat};${endLon},${endLat}?overview=full&geometries=geojson&alternatives=3&steps=true`
     );
     const data = await response.json();
     if (data && data.routes && data.routes.length > 0) {
-      const route = data.routes[0];
-      // OSRM returns coordinates as [lon, lat], Leaflet needs [lat, lon]
-      const coordinates = route.geometry.coordinates.map((coord) => [
-        coord[1],
-        coord[0],
-      ]);
-      return {
-        coordinates,
-        distance: route.distance, // in meters
-        duration: route.duration, // in seconds
-      };
+      return data.routes.map(route => {
+        const coordinates = route.geometry.coordinates.map((coord) => [
+          coord[1],
+          coord[0],
+        ]);
+        return {
+          coordinates,
+          distance: route.distance, // in meters
+          duration: route.duration, // in seconds
+          steps: route.legs?.[0]?.steps || [],
+        };
+      });
     }
     return null;
   } catch (error) {

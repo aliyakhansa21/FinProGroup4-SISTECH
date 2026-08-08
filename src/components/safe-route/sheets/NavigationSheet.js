@@ -9,6 +9,7 @@ export default function NavigationSheet({
   message = "I'm right here with you. Well-lit stretch coming up.",
   onShare,
   onEnd,
+  onSimulateArrival,
 }) {
   return (
     <section className="flex w-full flex-col rounded-t-[24px] bg-white shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
@@ -59,6 +60,16 @@ export default function NavigationSheet({
             </div>
             <p className="text-[14px] leading-snug font-medium opacity-90">{message}</p>
           </div>
+        )}
+
+        {/* Simulate Arrival Button */}
+        {onSimulateArrival && (
+          <button
+            onClick={onSimulateArrival}
+            className="mt-2 flex w-full items-center justify-center rounded-full bg-indigo-50 py-3 text-[14px] font-bold text-indigo-600 transition hover:bg-indigo-100 active:scale-95"
+          >
+            Simulate Arrival
+          </button>
         )}
       </div>
     </section>

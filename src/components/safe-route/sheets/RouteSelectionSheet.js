@@ -28,59 +28,7 @@ export default function RouteSelectionSheet({
   const [activeTab, setActiveTab] = useState("Safest");
   const [travelMode, setTravelMode] = useState("walk");
 
-  // Fallback default mock routes if recommendedRoutes is empty
-  const defaultRoutes = [
-    {
-      id: 1,
-      name: "Rute Teraman Utama",
-      duration: "18 min",
-      distance: "1.4 km",
-      safetyScore: 88,
-      category: "Safest",
-      description: "Melalui jalan utama dengan penerangan maksimal dan kamera CCTV aktif.",
-      tags: ["Penerangan Baik 💡", "Kamera CCTV 📹", "Jalur Ramai 👥"],
-      lighting: "95%",
-      cctvCount: 6,
-    },
-    {
-      id: 2,
-      name: "Alternatif Rute Aman",
-      duration: "20 min",
-      distance: "1.6 km",
-      safetyScore: 80,
-      category: "Safest",
-      description: "Melewati area perumahan dan dekat pos keamanan warga.",
-      tags: ["Dekat Pos Polisi 👮", "Penerangan Cukup 💡"],
-      lighting: "85%",
-      cctvCount: 4,
-    },
-    {
-      id: 3,
-      name: "Rute Tercepat",
-      duration: "12 min",
-      distance: "1.2 km",
-      safetyScore: 65,
-      category: "Fastest",
-      description: "Jalur pintas melalui gang perumahan, beberapa titik kurang terang.",
-      tags: ["Waktu Singkat ⚡", "Jalan Pintas 🏃"],
-      lighting: "60%",
-      cctvCount: 1,
-    },
-    {
-      id: 4,
-      name: "Rute Pemandangan & Taman",
-      duration: "25 min",
-      distance: "2.0 km",
-      safetyScore: 75,
-      category: "Scenic",
-      description: "Jalur hijau melintasi area taman terbuka, nyaman untuk berjalan kaki.",
-      tags: ["Jalur Taman 🌳", "Udara Segar 🍃"],
-      lighting: "75%",
-      cctvCount: 3,
-    },
-  ];
-
-  const routesToDisplay = recommendedRoutes.length > 0 ? recommendedRoutes : defaultRoutes;
+  const routesToDisplay = recommendedRoutes || [];
 
   // Filter category tabs
   const tabs = [
